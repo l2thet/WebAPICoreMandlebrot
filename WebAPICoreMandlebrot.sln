@@ -1,0 +1,24 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.2.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebAPICoreMandlebrot", "WebAPICoreMandlebrot.csproj", "{87D83508-1BA9-B75D-CF90-91097E29BA2F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{87D83508-1BA9-B75D-CF90-91097E29BA2F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{87D83508-1BA9-B75D-CF90-91097E29BA2F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{87D83508-1BA9-B75D-CF90-91097E29BA2F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{87D83508-1BA9-B75D-CF90-91097E29BA2F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {F32D4590-F5B5-4289-9B95-A32D80EE2E25}
+	EndGlobalSection
+EndGlobal

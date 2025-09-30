@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mandelbrot Set Visualization</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Mandelbrot Set Visualization</h1>
+        
+        <div class="controls">
+            <div class="control-group">
+                <label for="width">Width</label>
+                <input type="number" id="width" value="1280" min="100" max="1920">
+            </div>
+            <div class="control-group">
+                <label for="height">Height</label>
+                <input type="number" id="height" value="1024" min="100" max="1440">
+            </div>
+            <div class="control-group">
+                <label for="maxIterations">Max Iterations</label>
+                <input type="number" id="maxIterations" value="1000" min="10" max="1000">
+            </div>
+            <button id="generateBtn">Generate</button>
+        </div>
+        
+        <div class="canvas-container">
+            <canvas id="mandelbrotCanvas"></canvas>
+        </div>
+        
+        <div class="info">
+            <span id="deviceInfo">Device: Loading...</span>
+            <span>Render Time: <span id="renderTime">--</span></span>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
