@@ -1,34 +1,22 @@
 # WebAPI Core Mandelbrot
 
-A high-performance .NET 8 Web API with ILGPU CUDA acceleration for real-time Mandelbrot set visualization. Features UHD 4K rendering with streamlined auto-generating interface and dynamic GPU scaling.
+A .NET 8 Web API project with ILGPU CUDA acceleration for real-time Mandelbrot set visualization with interactive web interface.
 
-## Key Features
+## Features
 
-### Performance & Quality
-- **UHD 4K Resolution**: Native 3840×2160 rendering with HD display scaling for crisp visuals
-- **CUDA GPU Acceleration**: ILGPU-powered computation with RTX 5070 optimization
-- **Dynamic Iteration Scaling**: Backend calculates iterations based on zoom level (5K-10M range)
-- **Real-time Interaction**: Click to zoom, right-click to reset with instant feedback
-
-### Architecture
+- **CUDA GPU Acceleration**: ILGPU-powered computation for high-performance rendering
+- **Enhanced Dynamic Iteration Scaling**: Aggressive scaling from 10K to 10M iterations based on zoom level for maximum detail retention
+- **Interactive Interface**: Click to zoom, right-click to reset with real-time feedback
 - **Backend-Authoritative Math**: All coordinate calculations performed on GPU backend
-- **SharedConstants System**: Auto-synced constants between C# and TypeScript  
-- **Streamlined Interface**: Auto-generating visualization with minimal UI controls
-- **Professional Development**: Full TypeScript, MSBuild integration, F5 debug support
-
-### Technical Stack
-- .NET 8 Web API with ILGPU 1.5.3
-- TypeScript frontend with ES2020 modules
-- CUDA kernel pre-compilation for optimal performance
-- Swagger/OpenAPI documentation
-- VS Code integrated development environment
+- **SharedConstants System**: Auto-synced constants between C# and TypeScript
+- **TypeScript Frontend**: Modern ES2020 modules with MSBuild integration
+- **Streamlined UI**: Auto-generating visualization with minimal controls
 
 ## Prerequisites
 
 ### Backend Requirements
 - .NET 8 SDK
 - NVIDIA GPU with CUDA support (required for computation)
-- Visual Studio Code with C# Dev Kit extension
 
 ### Frontend Development Requirements
 - **Node.js** (version 18.0.0 or higher) - Required for TypeScript compilation
@@ -59,7 +47,7 @@ winget install OpenJS.NodeJS
 ```
 
 #### Verification:
-After installation, restart your terminal/VS Code and verify:
+After installation, restart your terminal and verify:
 ```powershell
 node --version    # Should show v18.x.x or higher
 npm --version     # Should show 9.x.x or higher
@@ -300,16 +288,18 @@ For custom implementations, the API is designed for HTML5 canvas integration:
 
 ## Development
 
-### Debugging in VS Code
-
-1. Press `F5` or use the "Run and Debug" panel
-2. Select ".NET Core Launch (web)" configuration
-3. The project will build automatically and launch with the debugger attached
-
 ### Building
 
-- **Build**: `Ctrl+Shift+P` → "Tasks: Run Task" → "build"
-- **Watch**: `Ctrl+Shift+P` → "Tasks: Run Task" → "watch" (for hot reload during development)
+```bash
+# Build .NET project
+dotnet build
+
+# Build TypeScript
+npm run build
+
+# Watch mode for development
+npm run watch
+```
 
 ## CUDA Architecture
 
@@ -326,7 +316,8 @@ This project uses CUDA for GPU computation:
 - Memory Management: GPU buffer allocation and cleanup
 
 ### Performance
-- GPU computation time: ~5ms for 800x600 images
+- GPU computation time: ~5ms for standard zoom levels, scales with iteration count
+- Enhanced iteration scaling: 10K base iterations, up to 10M for deep zoom levels
 - Data format compatible with canvas ImageData
 - Development server with automatic rebuild
 
@@ -386,9 +377,9 @@ $PSDefaultParameterValues['Invoke-WebRequest:SkipCertificateCheck'] = $true
 
 ## Next Steps
 
-1. **Run the application**: `dotnet run` or press F5 in VS Code
-2. **Open the frontend**: Navigate to `https://localhost:7000` 
-3. **Adjust parameters**: Use the controls to change width, height, and iterations
+1. **Run the application**: `dotnet run`
+2. **Open the frontend**: Navigate to `https://localhost:7000`
+3. **Interact with visualization**: Click to zoom, right-click to reset
 4. **Monitor performance**: Check GPU compute times and device status
 5. **Test API directly**: Use Swagger UI at `https://localhost:7000/swagger`
 
