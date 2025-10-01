@@ -279,6 +279,15 @@ FakesAssemblies/
 .ntvs_analysis.dat
 node_modules/
 
+# TypeScript build artifacts - exclude transpiled JS files and maps
+wwwroot/js/*.js
+wwwroot/js/*.js.map
+wwwroot/js/*.d.ts
+wwwroot/js/*.d.ts.map
+
+# Auto-generated TypeScript constants file
+src/shared-constants.ts
+
 # Visual Studio 6 build log
 *.plg
 

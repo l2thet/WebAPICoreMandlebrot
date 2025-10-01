@@ -1,5 +1,4 @@
 using ILGPU;
-using ILGPU.Runtime;
 using WebAPICoreMandlebrot.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -25,20 +24,30 @@ builder.Services.AddSingleton<ILGPUAcceleratorService>(provider =>
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
-
 app.UseHttpsRedirection();
 
-// Serve static files from wwwroot
+// Serve static files FIRST - index.html will be served at root by default
 app.UseDefaultFiles();
 app.UseStaticFiles();
 
+// Configure routing AFTER static files
+app.UseRouting();
+
+// Configure Swagger with specific routing
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
+    {
+        c.RoutePrefix = "swagger"; // Swagger ONLY at /swagger
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Mandelbrot API V1");
+        c.DocumentTitle = "Mandelbrot API Documentation";
+    });
+}
+
 app.UseAuthorization();
+
+// Map controllers
 app.MapControllers();
 
 app.Run();

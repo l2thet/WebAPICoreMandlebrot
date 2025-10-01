@@ -12,4 +12,34 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
   </ItemGroup>
 
+  <!-- Check if Node.js is available and run constants generation -->
+  <Target Name="CheckNodeJs" BeforeTargets="Build">
+    <Exec Command="node --version" 
+          ContinueOnError="true" 
+          IgnoreExitCode="true">
+      <Output TaskParameter="ExitCode" PropertyName="NodeExitCode" />
+    </Exec>
+  </Target>
+
+  <!-- Generate TypeScript constants if Node.js is available -->
+  <Target Name="GenerateTypeScriptConstants" AfterTargets="CheckNodeJs" BeforeTargets="Build" Condition="'$(NodeExitCode)' == '0'">
+    <Message Text="🔧 Generating TypeScript constants from C# SharedConstants..." Importance="high" />
+    <Exec Command="npx tsx Build/generate-constants.ts" 
+          ContinueOnError="true"
+          WorkingDirectory="$(MSBuildProjectDirectory)" />
+  </Target>
+
+  <!-- Skip message when Node.js not available -->
+  <Target Name="SkipConstantsGeneration" AfterTargets="CheckNodeJs" BeforeTargets="Build" Condition="'$(NodeExitCode)' != '0'">
+    <Message Text="⚠️ Node.js not available - skipping constants generation" Importance="normal" />
+  </Target>
+
+  <!-- Compile TypeScript after constants generation -->
+  <Target Name="CompileTypeScript" AfterTargets="GenerateTypeScriptConstants" BeforeTargets="Build" Condition="'$(NodeExitCode)' == '0'">
+    <Message Text="🔧 Compiling TypeScript..." Importance="high" />
+    <Exec Command="npx tsc" 
+          ContinueOnError="true"
+          WorkingDirectory="$(MSBuildProjectDirectory)" />
+  </Target>
+
 </Project>

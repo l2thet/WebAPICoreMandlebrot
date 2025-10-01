@@ -1,36 +1,145 @@
 # WebAPI Core Mandelbrot
 
-A .NET 8 Web API project with ILGPU CUDA acceleration for Mandelbrot set generation, designed to provide data for canvas-based web visualizations.
+A high-performance .NET 8 Web API with ILGPU CUDA acceleration for real-time Mandelbrot set visualization. Features UHD 4K rendering with streamlined auto-generating interface and dynamic GPU scaling.
 
-## Features
+## Key Features
 
-- .NET 8 Web API
-- CUDA GPU computing with ILGPU
-- Swagger/OpenAPI documentation  
-- VS Code debugging support
-- Mandelbrot set generation for canvas rendering
-- Error handling for systems without CUDA
-- Standardized JSON response format
+### Performance & Quality
+- **UHD 4K Resolution**: Native 3840×2160 rendering with HD display scaling for crisp visuals
+- **CUDA GPU Acceleration**: ILGPU-powered computation with RTX 5070 optimization
+- **Dynamic Iteration Scaling**: Backend calculates iterations based on zoom level (5K-10M range)
+- **Real-time Interaction**: Click to zoom, right-click to reset with instant feedback
+
+### Architecture
+- **Backend-Authoritative Math**: All coordinate calculations performed on GPU backend
+- **SharedConstants System**: Auto-synced constants between C# and TypeScript  
+- **Streamlined Interface**: Auto-generating visualization with minimal UI controls
+- **Professional Development**: Full TypeScript, MSBuild integration, F5 debug support
+
+### Technical Stack
+- .NET 8 Web API with ILGPU 1.5.3
+- TypeScript frontend with ES2020 modules
+- CUDA kernel pre-compilation for optimal performance
+- Swagger/OpenAPI documentation
+- VS Code integrated development environment
 
 ## Prerequisites
 
+### Backend Requirements
 - .NET 8 SDK
 - NVIDIA GPU with CUDA support (required for computation)
 - Visual Studio Code with C# Dev Kit extension
 
+### Frontend Development Requirements
+- **Node.js** (version 18.0.0 or higher) - Required for TypeScript compilation
+- **npm** (version 9.0.0 or higher) - Comes with Node.js
+
+> **Note:** Node.js is required for TypeScript compilation and frontend development. The TypeScript source files in `/src` are compiled to JavaScript in `/wwwroot/js`.
+
+### Installing Node.js
+
+#### Windows:
+1. **Download from official site**: Go to [nodejs.org](https://nodejs.org/)
+2. **Choose LTS version** (recommended): Download the "LTS" version (currently 20.x)
+3. **Run installer**: Download and run the `.msi` installer
+4. **Verify installation**: Open PowerShell and run:
+   ```powershell
+   node --version
+   npm --version
+   ```
+
+#### Alternative - Using Chocolatey (if available):
+```powershell
+choco install nodejs
+```
+
+#### Alternative - Using winget:
+```powershell
+winget install OpenJS.NodeJS
+```
+
+#### Verification:
+After installation, restart your terminal/VS Code and verify:
+```powershell
+node --version    # Should show v18.x.x or higher
+npm --version     # Should show 9.x.x or higher
+```
+
+## HTTPS Certificate Setup
+
+The application uses HTTPS on `localhost:7000` and requires a development certificate to work properly. Follow these steps to set up the self-signed certificate:
+
+### Option 1: Automatic Setup (Recommended)
+```bash
+# Trust the ASP.NET Core development certificate
+dotnet dev-certs https --trust
+```
+
+### Option 2: Manual Certificate Management
+If you encounter certificate issues or need to regenerate:
+
+```bash
+# Check existing certificates
+dotnet dev-certs https --check
+
+# Clean existing certificates (if needed)
+dotnet dev-certs https --clean
+
+# Generate new development certificate
+dotnet dev-certs https
+
+# Trust the certificate (Windows/macOS)
+dotnet dev-certs https --trust
+
+# For Linux - export certificate for manual installation
+dotnet dev-certs https -ep ${HOME}/.aspnet/https/aspnetapp.pfx -p <password>
+```
+
+### Troubleshooting Certificate Issues
+
+**Browser Shows "Not Secure" or Certificate Errors:**
+1. Run `dotnet dev-certs https --trust` and restart your browser
+2. For Chrome: Go to `chrome://settings/certificates` → Manage certificates → Import the localhost certificate
+3. For Firefox: Accept the security exception when prompted
+
+**PowerShell/API Testing Certificate Errors:**
+```powershell
+# Skip certificate validation for API testing only
+[System.Net.ServicePointManager]::ServerCertificateValidationCallback = {$true}
+```
+
+**Production Deployment:**
+For production deployment, replace the development certificate with a proper SSL certificate from a Certificate Authority.
+
 ## Getting Started
 
-### 1. Restore Dependencies
+### 1. Setup HTTPS Certificate (First Time Only)
+```bash
+# Trust the development certificate for HTTPS
+dotnet dev-certs https --trust
+```
+
+### 2. Install Frontend Dependencies
+```bash
+npm install
+```
+
+### 3. Restore .NET Dependencies
 ```bash
 dotnet restore
 ```
 
-### 2. Build the Project
+### 4. Build TypeScript
+```bash
+npm run build
+```
+
+### 5. Build the .NET Project
 ```bash
 dotnet build
 ```
 
-### 3. Run the Project
+### 6. Run the Project
 ```bash
 dotnet run
 ```
@@ -38,6 +147,89 @@ dotnet run
 The application will be available at:
 - Frontend: https://localhost:7000 (Interactive Mandelbrot visualization)
 - Swagger UI: https://localhost:7000/swagger (API documentation)
+
+## Shared Constants System
+
+This project uses an **MSBuild-integrated constants sharing system** that ensures consistency between C# backend and TypeScript frontend without requiring external tools.
+
+### How It Works:
+1. **C# Constants**: Define constants in `Constants/SharedConstants.cs` with `[ExportToTypeScript]` attribute
+2. **Auto-Generation**: MSBuild runs a TypeScript script during compilation to extract constants  
+3. **TypeScript Output**: Generates `src/shared-constants.ts` with matching TypeScript constants
+4. **Import & Use**: Both C# and TypeScript use the same values automatically
+
+### Example:
+```csharp
+// C# - Constants/SharedConstants.cs
+[ExportToTypeScript(Comment = "Default center point")]
+public const double DefaultCenterReal = -0.5;
+```
+
+```typescript
+// TypeScript - auto-generated src/shared-constants.ts  
+export const DefaultCenterReal = -0.5;
+```
+
+### Updating Constants:
+1. Edit values in `Constants/SharedConstants.cs`
+2. Add `[ExportToTypeScript]` attribute to new constants  
+3. Run `npm run generate-constants` or `dotnet build` - TypeScript constants update automatically
+4. Both frontend and backend use the new values
+
+### Manual Generation:
+```bash
+# Generate constants manually
+npm run generate-constants
+
+# Or build TypeScript (includes constants generation)
+npm run build
+```
+
+> **Note**: The `src/shared-constants.ts` file is auto-generated. Never edit it manually.
+
+## TypeScript Development Setup
+
+### 1. Install Node.js Dependencies
+```bash
+# Install TypeScript and development dependencies
+npm install
+```
+
+### 2. TypeScript Compilation Options
+
+#### Build once:
+```bash
+npm run build
+```
+
+#### Watch mode (recommended during development):
+```bash
+npm run watch
+```
+
+#### Clean compiled files:
+```bash
+npm run clean
+```
+
+### 3. Project Structure
+```
+src/                    # TypeScript source files
+├── app.ts             # Main application logic
+├── types.ts           # Type definitions
+wwwroot/js/            # Compiled JavaScript output (generated)
+├── app.js             # Compiled from src/app.ts
+├── app.d.ts           # Type declarations
+└── app.js.map         # Source maps
+```
+
+### 4. Development Workflow
+1. Make changes to TypeScript files in `/src`
+2. Run `npm run watch` to automatically compile on save
+3. Refresh the browser to see changes
+4. Use browser dev tools with source maps for debugging
+
+> **Important:** Never edit files in `/wwwroot/js` directly - they are generated from TypeScript sources!
 
 ## API Endpoints
 
@@ -171,6 +363,26 @@ If you encounter CUDA-related errors:
 2. **Verify** CUDA installation: `nvidia-smi` command
 3. **Check** device compatibility at `/api/mandelbrot/device`
 4. **Review** PTX compilation errors in console output
+
+### Troubleshooting HTTPS Issues
+
+**Application won't start or shows HTTPS errors:**
+```bash
+# Reset and recreate development certificates
+dotnet dev-certs https --clean
+dotnet dev-certs https --trust
+```
+
+**Browser security warnings:**
+- Click "Advanced" → "Proceed to localhost" for testing
+- Add certificate exception in browser settings
+
+**API calls fail with certificate errors:**
+```powershell
+# For PowerShell testing, bypass certificate validation
+$PSDefaultParameterValues['Invoke-RestMethod:SkipCertificateCheck'] = $true
+$PSDefaultParameterValues['Invoke-WebRequest:SkipCertificateCheck'] = $true
+```
 
 ## Next Steps
 
