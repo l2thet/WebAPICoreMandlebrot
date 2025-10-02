@@ -28,6 +28,34 @@ public class MandelbrotResponse
     public double Zoom { get; set; }
 }
 
+public class BatchPointRequest
+{
+    public double CenterReal { get; set; }
+    public double CenterImaginary { get; set; }
+    public double ViewWidth { get; set; }
+    public double ViewHeight { get; set; }
+    public int GridSize { get; set; }
+    public int MaxIterations { get; set; }
+}
+
+public class PointResponse
+{
+    public double Real { get; set; }
+    public double Imaginary { get; set; }
+    public int Iterations { get; set; }
+    public int MaxIterations { get; set; }
+    public bool Success { get; set; }
+    public string? Error { get; set; }
+}
+
+public class BatchPointResponse
+{
+    public bool Success { get; set; }
+    public string? Error { get; set; }
+    public PointResponse[]? Points { get; set; }
+    public long? ComputeTimeMs { get; set; }
+}
+
 [ApiController]
 [Route("api/[controller]")]
 public class MandelbrotController : ControllerBase
@@ -200,6 +228,103 @@ public class MandelbrotController : ControllerBase
             return Ok(new { 
                 Error = $"Failed to compute point: {ex.Message}",
                 Success = false 
+            });
+        }
+    }
+
+    /// <summary>
+    /// Compute multiple Mandelbrot points in a batch for hover preview
+    /// </summary>
+    [HttpPost("batch")]
+    public async Task<ActionResult<BatchPointResponse>> ComputeBatch([FromBody] BatchPointRequest request)
+    {
+        if (_accelerator == null)
+        {
+            return Ok(new BatchPointResponse
+            {
+                Error = _cudaError ?? "CUDA accelerator not available",
+                Success = false
+            });
+        }
+
+        try
+        {
+            var result = await Task.Run(() =>
+            {
+                var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+                
+                var points = new List<PointResponse>();
+                var totalPoints = request.GridSize * request.GridSize;
+            
+            // Use GPU for batch computation
+            using var buffer = _accelerator.Allocate1D<int>(totalPoints);
+            using var realBuffer = _accelerator.Allocate1D<double>(totalPoints);
+            using var imagBuffer = _accelerator.Allocate1D<double>(totalPoints);
+            
+            // Prepare input arrays
+            var realValues = new double[totalPoints];
+            var imagValues = new double[totalPoints];
+            
+            int index = 0;
+            for (int y = 0; y < request.GridSize; y++)
+            {
+                for (int x = 0; x < request.GridSize; x++)
+                {
+                    var normalizedX = (x / (double)(request.GridSize - 1)) - 0.5;
+                    var normalizedY = (y / (double)(request.GridSize - 1)) - 0.5;
+                    
+                    realValues[index] = request.CenterReal + normalizedX * request.ViewWidth * 0.5;
+                    imagValues[index] = request.CenterImaginary + normalizedY * request.ViewHeight * 0.5;
+                    index++;
+                }
+            }
+            
+            // Copy to GPU
+            realBuffer.CopyFromCPU(realValues);
+            imagBuffer.CopyFromCPU(imagValues);
+            
+            // Load batch kernel (same as single point kernel, but for multiple points)
+            var kernel = _accelerator.LoadAutoGroupedStreamKernel<Index1D, ArrayView<int>, ArrayView<double>, ArrayView<double>, int>(SinglePointKernel);
+            
+            // Launch kernel
+            kernel((Index1D)totalPoints, buffer.View, realBuffer.View, imagBuffer.View, request.MaxIterations);
+            
+            _accelerator.Synchronize();
+            
+            // Get results
+            var results = buffer.GetAsArray1D();
+            
+            // Build response
+            for (int i = 0; i < totalPoints; i++)
+            {
+                points.Add(new PointResponse
+                {
+                    Real = realValues[i],
+                    Imaginary = imagValues[i],
+                    Iterations = results[i],
+                    MaxIterations = request.MaxIterations,
+                    Success = true
+                });
+            }
+            
+                stopwatch.Stop();
+                
+                return new BatchPointResponse
+                {
+                    Points = points.ToArray(),
+                    ComputeTimeMs = stopwatch.ElapsedMilliseconds,
+                    Success = true
+                };
+            });
+            
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return Ok(new BatchPointResponse
+            {
+                Error = $"Failed to compute batch: {ex.Message}",
+                Success = false
             });
         }
     }

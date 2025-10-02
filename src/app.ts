@@ -13,7 +13,9 @@ import {
     ComplexPlaneMinImaginary,
     ComplexPlaneMaxImaginary,
     DefaultCanvasWidth,
-    DefaultCanvasHeight
+    DefaultCanvasHeight,
+    DefaultViewportWidth,
+    DefaultViewportHeight
 } from './shared-constants.js';
 
 class MandelbrotVisualization {
@@ -25,6 +27,8 @@ class MandelbrotVisualization {
     private zoomLevelElement!: HTMLElement;
     private iterationCountElement!: HTMLElement;
     private tooltip!: HTMLDivElement;
+    private loadingOverlay!: HTMLDivElement;
+    private loadingSpinner!: HTMLDivElement;
     
     // Current view parameters (updated by user interaction and backend)
     private centerReal: number = DefaultCenterReal;
@@ -44,6 +48,7 @@ class MandelbrotVisualization {
     constructor() {
         this.initializeElements();
         this.createTooltip();
+        this.createLoadingUI();
         this.setupEventListeners();
         this.checkDeviceInfo();
         this.generateMandelbrot(); // Auto-generate on page load
@@ -77,9 +82,26 @@ class MandelbrotVisualization {
         document.body.appendChild(this.tooltip);
     }
 
+    private createLoadingUI(): void {
+        // Create loading overlay
+        this.loadingOverlay = document.createElement('div');
+        this.loadingOverlay.className = 'loading-overlay';
+        this.loadingOverlay.style.display = 'none';
+        
+        // Create spinner
+        this.loadingSpinner = document.createElement('div');
+        this.loadingSpinner.className = 'loading-spinner';
+        
+        this.loadingOverlay.appendChild(this.loadingSpinner);
+        
+        // Insert after canvas container
+        const canvasContainer = document.querySelector('.canvas-container');
+        if (canvasContainer && canvasContainer.parentNode) {
+            canvasContainer.appendChild(this.loadingOverlay);
+        }
+    }
+
     private setupEventListeners(): void {
-        this.canvas.addEventListener('mousemove', (e) => this.handleMouseMove(e));
-        this.canvas.addEventListener('mouseleave', () => this.hideTooltip());
         this.canvas.addEventListener('click', (e) => this.handleCanvasClick(e));
         this.canvas.addEventListener('contextmenu', (e) => this.handleRightClick(e));
     }
@@ -149,74 +171,9 @@ class MandelbrotVisualization {
 
 
 
-    private async handleMouseMove(event: MouseEvent): Promise<void> {
-        if (this.isGenerating) return;
-
-        const rect = this.canvas.getBoundingClientRect();
-        const canvasX = ((event.clientX - rect.left) * this.canvas.width) / rect.width;
-        const canvasY = ((event.clientY - rect.top) * this.canvas.height) / rect.height;
-
-        const { real, imaginary } = this.canvasToComplex(canvasX, canvasY);
-
-        try {
-            const pointData = await this.getPointData(real, imaginary, this.currentMaxIterations);
-            this.showTooltip(event.clientX, event.clientY, pointData, real, imaginary);
-        } catch (error) {
-            this.hideTooltip();
-        }
-    }
-
-    private async getPointData(real: number, imaginary: number, maxIterations: number): Promise<PointResponse> {
-        const response = await fetch(
-            `/api/mandelbrot/point?real=${real}&imaginary=${imaginary}&maxIterations=${maxIterations}`
-        );
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        return await response.json();
-    }
-
-    private showTooltip(mouseX: number, mouseY: number, pointData: PointResponse, real: number, imaginary: number): void {
-        if (!pointData.success) {
-            this.hideTooltip();
-            return;
-        }
-
-        const isInSet = pointData.iterations === pointData.maxIterations;
-        const convergenceStatus = isInSet ? 'In Mandelbrot Set' : `Escaped after ${pointData.iterations} iterations`;
-        
-        const tooltipContent = `
-            Complex: ${real.toFixed(6)} ${imaginary >= 0 ? '+' : ''}${imaginary.toFixed(6)}i
-            ${convergenceStatus}
-            Iteration Limit: ${pointData.maxIterations}
-        `.trim();
-
-        this.tooltip.innerHTML = tooltipContent.replace(/\n/g, '<br>');
-        this.tooltip.style.display = 'block';
-        
-        // Position tooltip near mouse but avoid edges
-        const tooltipRect = this.tooltip.getBoundingClientRect();
-        let left = mouseX + 15;
-        let top = mouseY - 10;
-        
-        if (left + tooltipRect.width > window.innerWidth) {
-            left = mouseX - tooltipRect.width - 15;
-        }
-        if (top < 0) {
-            top = mouseY + 20;
-        }
-        
-        this.tooltip.style.left = `${left}px`;
-        this.tooltip.style.top = `${top}px`;
-    }
-
-    private hideTooltip(): void {
-        this.tooltip.style.display = 'none';
-    }
-
     private handleCanvasClick(event: MouseEvent): void {
+        if (this.isGenerating) return; // Prevent clicks during generation
+
         const rect = this.canvas.getBoundingClientRect();
         const canvasX = ((event.clientX - rect.left) * this.canvas.width) / rect.width;
         const canvasY = ((event.clientY - rect.top) * this.canvas.height) / rect.height;
@@ -241,6 +198,8 @@ class MandelbrotVisualization {
     }
 
     private resetView(): void {
+        if (this.isGenerating) return; // Prevent reset during generation
+
         this.centerReal = DefaultCenterReal;
         this.centerImaginary = DefaultCenterImaginary;
         this.zoom = DefaultZoom;
@@ -250,6 +209,8 @@ class MandelbrotVisualization {
     }
 
     private handleRightClick(event: MouseEvent): void {
+        if (this.isGenerating) return; // Prevent right-click during generation
+        
         event.preventDefault(); // Prevent context menu
         this.resetView();
         this.showToast('View reset to default', 'info');
@@ -262,16 +223,31 @@ class MandelbrotVisualization {
         this.zoomLevelElement.textContent = zoomText;
     }
 
+    private showLoadingState(): void {
+        // Gray out the canvas
+        this.canvas.style.opacity = '0.5';
+        this.canvas.style.pointerEvents = 'none';
+        
+        // Show loading overlay
+        this.loadingOverlay.style.display = 'flex';
+    }
+
+    private hideLoadingState(): void {
+        // Restore canvas
+        this.canvas.style.opacity = '1';
+        this.canvas.style.pointerEvents = 'auto';
+        
+        // Hide loading overlay
+        this.loadingOverlay.style.display = 'none';
+    }
+
     private async generateMandelbrot(): Promise<void> {
         if (this.isGenerating) return;
         
         this.isGenerating = true;
+        this.showLoadingState();
         
         try {
-            // Set canvas size to UHD (fixed dimensions)
-            this.canvas.width = this.width;
-            this.canvas.height = this.height;
-            
             const startTime = performance.now();
             
             // Make API call - let backend calculate iterations based on zoom
@@ -312,7 +288,9 @@ class MandelbrotVisualization {
             // Update maxIterations with the value calculated by backend
             this.currentMaxIterations = data.maxIterations;
             
-            // Render to canvas
+            // Now that we have data, set canvas size and render
+            this.canvas.width = this.width;
+            this.canvas.height = this.height;
             this.renderToCanvas(data.data, this.width, this.height, data.maxIterations);
             
             const endTime = performance.now();
@@ -330,6 +308,7 @@ class MandelbrotVisualization {
             this.renderErrorCanvas();
         } finally {
             this.isGenerating = false;
+            this.hideLoadingState();
         }
     }
 

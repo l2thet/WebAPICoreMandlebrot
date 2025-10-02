@@ -50,4 +50,20 @@ export interface PointResponse {
     error?: string;
 }
 
+export interface BatchPointRequest {
+    centerReal: number;
+    centerImaginary: number;
+    viewWidth: number;
+    viewHeight: number;
+    gridSize: number;
+    maxIterations: number;
+}
+
+export interface BatchPointResponse {
+    success: boolean;
+    error?: string;
+    points?: PointResponse[];
+    computeTimeMs?: number;
+}
+
 export type ToastType = 'info' | 'success' | 'error';
