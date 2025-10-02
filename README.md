@@ -231,17 +231,6 @@ Generate complete Mandelbrot set data for canvas rendering
 - **Query parameters:** `width` (default: 800), `height` (default: 600), `maxIterations` (default: 100)
 - **Returns:** Standardized JSON response with success/error status
 
-#### `GET /api/mandelbrot/point`  
-Compute single point in Mandelbrot set
-- **Query parameters:** `real` (default: -0.5), `imaginary` (default: 0.0), `maxIterations` (default: 100)
-- **Returns:** Point computation result with success/error status
-
-#### `POST /api/mandelbrot/batch`
-Compute multiple points efficiently in a single batch operation
-- **Body:** JSON array of `BatchPointRequest` objects with `real`, `imaginary`, and optional `maxIterations`
-- **Returns:** Array of computation results for all requested points
-- **Performance:** Optimized for processing thousands of points simultaneously
-
 #### `GET /api/mandelbrot/device`
 Get CUDA device information and availability
 - **Returns:** CUDA device details or error message if not available
@@ -400,7 +389,7 @@ $PSDefaultParameterValues['Invoke-WebRequest:SkipCertificateCheck'] = $true
 - Handle errors by showing appropriate messages
 - Use iteration data directly with `ImageData` for canvas rendering
 - Map iteration counts to RGB values for coloring
-- Use the `batch` endpoint for efficient multi-point computation
+- Focus on the main `generate` endpoint for full Mandelbrot set visualization
 - Implement loading states for better user experience during computation
 
 ## Future Features

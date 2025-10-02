@@ -1,8 +1,7 @@
 import { 
     MandelbrotResponse, 
     DeviceResponse, 
-    ToastType,
-    PointResponse
+    ToastType
 } from './types.js';
 import {
     DefaultCenterReal,
@@ -13,9 +12,7 @@ import {
     ComplexPlaneMinImaginary,
     ComplexPlaneMaxImaginary,
     DefaultCanvasWidth,
-    DefaultCanvasHeight,
-    DefaultViewportWidth,
-    DefaultViewportHeight
+    DefaultCanvasHeight
 } from './shared-constants.js';
 
 class MandelbrotVisualization {
