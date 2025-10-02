@@ -41,13 +41,6 @@ export interface DeviceResponse {
     statusMessage?: string;
 }
 
-export interface PointResponse {
-    real: number;
-    imaginary: number;
-    iterations: number;
-    maxIterations: number;
-    success: boolean;
-    error?: string;
-}
+
 
 export type ToastType = 'info' | 'success' | 'error';

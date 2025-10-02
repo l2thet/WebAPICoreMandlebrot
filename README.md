@@ -6,8 +6,11 @@ A .NET 8 Web API project with ILGPU CUDA acceleration for real-time Mandelbrot s
 
 - **CUDA GPU Acceleration**: ILGPU-powered computation for high-performance rendering
 - **Enhanced Dynamic Iteration Scaling**: Aggressive scaling from 10K to 10M iterations based on zoom level for maximum detail retention
+- **UHD 4K Rendering**: 3840×2160 computation with 1280×720 display scaling for ultra-high resolution
 - **Interactive Interface**: Click to zoom, right-click to reset with real-time feedback
 - **Backend-Authoritative Math**: All coordinate calculations performed on GPU backend
+- **Batch Processing API**: Efficient multi-point computation endpoint for advanced features
+- **Comprehensive Loading States**: Visual feedback during computation with loading overlays
 - **SharedConstants System**: Auto-synced constants between C# and TypeScript
 - **TypeScript Frontend**: Modern ES2020 modules with MSBuild integration
 - **Streamlined UI**: Auto-generating visualization with minimal controls
@@ -228,11 +231,6 @@ Generate complete Mandelbrot set data for canvas rendering
 - **Query parameters:** `width` (default: 800), `height` (default: 600), `maxIterations` (default: 100)
 - **Returns:** Standardized JSON response with success/error status
 
-#### `GET /api/mandelbrot/point`  
-Compute single point in Mandelbrot set
-- **Query parameters:** `real` (default: -0.5), `imaginary` (default: 0.0), `maxIterations` (default: 100)
-- **Returns:** Point computation result with success/error status
-
 #### `GET /api/mandelbrot/device`
 Get CUDA device information and availability
 - **Returns:** CUDA device details or error message if not available
@@ -271,11 +269,13 @@ All endpoints return a standardized response format:
 The project includes a web-based frontend at the root URL (`https://localhost:7000`):
 
 ### Features
-- Interactive canvas visualization of Mandelbrot set
-- Adjustable parameters (width, height, max iterations)
-- Real-time CUDA device detection and status
-- Error handling with toast notifications
-- Performance monitoring (GPU vs total time)
+- **UHD 4K Interactive Canvas**: Ultra-high resolution Mandelbrot visualization (3840×2160 computation)
+- **Streamlined Auto-Generation**: Click anywhere to zoom in, right-click to reset to default view
+- **Enhanced Iteration Scaling**: Dynamic scaling from 10K to 10M iterations based on zoom depth
+- **Comprehensive Loading States**: Visual feedback with loading overlays during computation
+- **Real-time CUDA Detection**: GPU device status and performance monitoring
+- **Backend-Authoritative Coordinates**: All mathematical calculations performed on GPU backend
+- **Responsive Design**: Centered canvas display with proper scaling and viewport management
 
 ### Canvas Integration
 
@@ -389,13 +389,15 @@ $PSDefaultParameterValues['Invoke-WebRequest:SkipCertificateCheck'] = $true
 - Handle errors by showing appropriate messages
 - Use iteration data directly with `ImageData` for canvas rendering
 - Map iteration counts to RGB values for coloring
-- Consider the `point` endpoint for mouse hover effects showing coordinates
+- Focus on the main `generate` endpoint for full Mandelbrot set visualization
+- Implement loading states for better user experience during computation
 
 ## Future Features
 
 - Region analysis endpoint with GPU-accelerated sampling for interactive zoom and exploration
 - Adaptive quality rendering based on complexity metrics
-- Real-time analysis for mouse hover and zoom previews
+- Additional color schemes and visualization modes
+- Export functionality for high-resolution images
 
 ## Notes
 

@@ -28,19 +28,19 @@ public class MandelbrotResponse
     public double Zoom { get; set; }
 }
 
+
+
 [ApiController]
 [Route("api/[controller]")]
 public class MandelbrotController : ControllerBase
 {
-    private readonly Context _context;
     private readonly ILGPUAcceleratorService _acceleratorService;
     private readonly Accelerator? _accelerator;
     private readonly string? _cudaError;
     private readonly Action<Index1D, ArrayView<int>, int, int, int, double, double, double>? _mandelbrotKernel;
 
-    public MandelbrotController(Context context, ILGPUAcceleratorService acceleratorService)
+    public MandelbrotController(ILGPUAcceleratorService acceleratorService)
     {
-        _context = context;
         _acceleratorService = acceleratorService;
         _accelerator = acceleratorService.Accelerator;
         _cudaError = acceleratorService.ErrorMessage;
@@ -170,39 +170,9 @@ public class MandelbrotController : ControllerBase
         }
     }
 
-    [HttpGet("point")]
-    public async Task<IActionResult> GetMandelbrotPoint(
-        [FromQuery] double real = -0.5, 
-        [FromQuery] double imaginary = 0.0, 
-        [FromQuery] int maxIterations = 100)
-    {
-        if (_accelerator == null)
-        {
-            return Ok(new { 
-                Error = _cudaError ?? "CUDA accelerator not available",
-                Success = false 
-            });
-        }
 
-        try
-        {
-            var result = await ComputeMandelbrotPoint(real, imaginary, maxIterations);
-            return Ok(new { 
-                Real = real, 
-                Imaginary = imaginary, 
-                Iterations = result,
-                MaxIterations = maxIterations,
-                Success = true
-            });
-        }
-        catch (Exception ex)
-        {
-            return Ok(new { 
-                Error = $"Failed to compute point: {ex.Message}",
-                Success = false 
-            });
-        }
-    }
+
+
 
     private static int CalculateDynamicIterations(double zoom)
     {
@@ -257,34 +227,7 @@ public class MandelbrotController : ControllerBase
         });
     }
 
-    private async Task<int> ComputeMandelbrotPoint(double real, double imaginary, int maxIterations)
-    {
-        if (_accelerator == null)
-        {
-            throw new InvalidOperationException("CUDA accelerator not available");
-        }
 
-        return await Task.Run(() =>
-        {
-            // For single point computation, use GPU with 1x1 buffer
-            using var buffer = _accelerator.Allocate1D<int>(1);
-            using var realBuffer = _accelerator.Allocate1D<double>(1);
-            using var imagBuffer = _accelerator.Allocate1D<double>(1);
-            
-            // Set input values
-            realBuffer.CopyFromCPU(new double[] { real });
-            imagBuffer.CopyFromCPU(new double[] { imaginary });
-            
-            // Load single point kernel
-            var kernel = _accelerator.LoadAutoGroupedStreamKernel<Index1D, ArrayView<int>, ArrayView<double>, ArrayView<double>, int>(SinglePointKernel);
-            
-            // Launch kernel
-            kernel((Index1D)1, buffer.View, realBuffer.View, imagBuffer.View, maxIterations);
-            
-            _accelerator.Synchronize();
-            return buffer.GetAsArray1D()[0];
-        });
-    }
 
     /// <summary>
     /// ILGPU kernel for computing Mandelbrot set iterations
@@ -329,29 +272,5 @@ public class MandelbrotController : ControllerBase
         output[index] = iterations;
     }
 
-    /// <summary>
-    /// ILGPU kernel for computing a single Mandelbrot point
-    /// </summary>
-    private static void SinglePointKernel(Index1D index, ArrayView<int> output, ArrayView<double> realInput, ArrayView<double> imagInput, int maxIterations)
-    {
-        double cReal = realInput[index];
-        double cImag = imagInput[index];
-        
-        double zReal = 0.0, zImag = 0.0;
-        int iterations = 0;
-        
-        while (iterations < maxIterations)
-        {
-            double magnitude = zReal * zReal + zImag * zImag;
-            if (magnitude > 4.0)
-                break;
-                
-            double tempReal = zReal * zReal - zImag * zImag + cReal;
-            zImag = 2.0 * zReal * zImag + cImag;
-            zReal = tempReal;
-            iterations++;
-        }
-        
-        output[index] = iterations;
-    }
+
 }
