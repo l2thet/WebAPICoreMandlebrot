@@ -23,9 +23,14 @@ class MandelbrotVisualization {
     private renderTimeElement!: HTMLElement;
     private zoomLevelElement!: HTMLElement;
     private iterationCountElement!: HTMLElement;
+    private complexCoordsElement!: HTMLElement;
+    private inSetElement!: HTMLElement;
+    private pointIterationsElement!: HTMLElement;
     private tooltip!: HTMLDivElement;
     private loadingOverlay!: HTMLDivElement;
     private loadingSpinner!: HTMLDivElement;
+    // Store iteration data from original Mandelbrot generation
+    private currentIterationData: number[] | null = null;
     
     // Current view parameters (updated by user interaction and backend)
     private centerReal: number = DefaultCenterReal;
@@ -63,6 +68,9 @@ class MandelbrotVisualization {
         this.renderTimeElement = this.getElement<HTMLElement>('renderTime');
         this.zoomLevelElement = this.getElement<HTMLElement>('zoomLevel');
         this.iterationCountElement = this.getElement<HTMLElement>('iterationCount');
+        this.complexCoordsElement = this.getElement<HTMLElement>('complexCoords');
+        this.inSetElement = this.getElement<HTMLElement>('inSet');
+        this.pointIterationsElement = this.getElement<HTMLElement>('pointIterations');
     }
 
     private getElement<T extends HTMLElement>(id: string): T {
@@ -91,16 +99,25 @@ class MandelbrotVisualization {
         
         this.loadingOverlay.appendChild(this.loadingSpinner);
         
-        // Insert after canvas container
-        const canvasContainer = document.querySelector('.canvas-container');
-        if (canvasContainer && canvasContainer.parentNode) {
-            canvasContainer.appendChild(this.loadingOverlay);
+        // Create a wrapper div for the canvas and append loading overlay
+        const canvasWrapper = document.createElement('div');
+        canvasWrapper.style.position = 'relative';
+        canvasWrapper.style.display = 'inline-block';
+        
+        // Move canvas into wrapper
+        const canvas = document.getElementById('mandelbrotCanvas') as HTMLCanvasElement;
+        if (canvas && canvas.parentNode) {
+            canvas.parentNode.insertBefore(canvasWrapper, canvas);
+            canvasWrapper.appendChild(canvas);
+            canvasWrapper.appendChild(this.loadingOverlay);
         }
     }
 
     private setupEventListeners(): void {
         this.canvas.addEventListener('click', (e) => this.handleCanvasClick(e));
         this.canvas.addEventListener('contextmenu', (e) => this.handleRightClick(e));
+        this.canvas.addEventListener('mousemove', (e) => this.handleMouseMove(e));
+        this.canvas.addEventListener('mouseleave', () => this.handleMouseLeave());
     }
 
     private showToast(message: string, type: ToastType = 'info'): void {
@@ -126,13 +143,13 @@ class MandelbrotVisualization {
             
             if (data.hasCudaDevice && data.currentDevice) {
                 this.deviceInfoElement.textContent = 
-                    `Device: ${data.currentDevice.name} (${data.currentDevice.acceleratorType})`;
+                    `${data.currentDevice.name} (${data.currentDevice.acceleratorType})`;
             } else {
-                this.deviceInfoElement.textContent = 'Device: CUDA Not Available';
+                this.deviceInfoElement.textContent = 'CUDA Not Available';
                 this.showToast(data.error || 'CUDA device not detected', 'error');
             }
         } catch (error) {
-            this.deviceInfoElement.textContent = 'Device: Connection Error';
+            this.deviceInfoElement.textContent = 'Connection Error';
             this.showToast('Failed to connect to API', 'error');
         }
     }
@@ -213,6 +230,72 @@ class MandelbrotVisualization {
         this.showToast('View reset to default', 'info');
     }
 
+    private handleMouseMove(event: MouseEvent): void {
+        const rect = this.canvas.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+        
+        // Scale coordinates to actual canvas size (not display size)
+        const scaleX = this.canvas.width / rect.width;
+        const scaleY = this.canvas.height / rect.height;
+        const canvasX = x * scaleX;
+        const canvasY = y * scaleY;
+        
+        // Convert canvas coordinates to complex plane coordinates
+        const complexReal = this.centerReal + (canvasX - this.canvas.width / 2) / (this.canvas.width / 2) * (2.0 / this.zoom);
+        const complexImag = this.centerImaginary - (canvasY - this.canvas.height / 2) / (this.canvas.height / 2) * (2.0 / this.zoom);
+        
+        // Update the complex coordinates display
+        this.complexCoordsElement.textContent = `${complexReal.toFixed(6)} + ${complexImag.toFixed(6)}i`;
+        
+        // Get iteration data from stored array
+        this.updatePointDetailsFromStoredData(canvasX, canvasY);
+    }
+
+    private handleMouseLeave(): void {
+        // Clear the point details when mouse leaves canvas
+        this.complexCoordsElement.textContent = '--';
+        this.inSetElement.textContent = '--';
+        this.pointIterationsElement.textContent = '--';
+    }
+
+    private updatePointDetailsFromStoredData(canvasX: number, canvasY: number): void {
+        // Check if we have iteration data available
+        if (!this.currentIterationData || this.currentIterationData.length === 0) {
+            this.inSetElement.textContent = '--';
+            this.pointIterationsElement.textContent = '--';
+            return;
+        }
+
+        // Ensure coordinates are within canvas bounds
+        const x = Math.max(0, Math.min(Math.floor(canvasX), this.canvas.width - 1));
+        const y = Math.max(0, Math.min(Math.floor(canvasY), this.canvas.height - 1));
+        
+        // Calculate array index (row-major order: y * width + x)
+        const index = y * this.canvas.width + x;
+        
+        // Check if index is valid
+        if (index < 0 || index >= this.currentIterationData.length) {
+            this.inSetElement.textContent = '--';
+            this.pointIterationsElement.textContent = '--';
+            return;
+        }
+        
+        // Get iteration count for this pixel
+        const iterations = this.currentIterationData[index];
+        if (iterations === undefined) {
+            this.inSetElement.textContent = '--';
+            this.pointIterationsElement.textContent = '--';
+            return;
+        }
+        
+        const inSet = iterations >= this.currentMaxIterations;
+        
+        // Update the legend
+        this.inSetElement.textContent = inSet ? 'Yes' : 'No';
+        this.pointIterationsElement.textContent = inSet ? `${this.currentMaxIterations}+` : `${iterations}`;
+    }
+
     private updateZoomDisplay(): void {
         const zoomText = this.zoom >= 1 
             ? `${this.zoom.toFixed(1)}x` 
@@ -285,6 +368,9 @@ class MandelbrotVisualization {
             // Update maxIterations with the value calculated by backend
             this.currentMaxIterations = data.maxIterations;
             
+            // Store the iteration data for mouse hover calculations
+            this.currentIterationData = data.data;
+            
             // Now that we have data, set canvas size and render
             this.canvas.width = this.width;
             this.canvas.height = this.height;
@@ -293,10 +379,12 @@ class MandelbrotVisualization {
             const endTime = performance.now();
             const totalTime = Math.round(endTime - startTime);
             
-            // Update UI with results
-            this.renderTimeElement.textContent = `${data.computeTimeMs || totalTime}ms`;
-            this.iterationCountElement.textContent = `${data.maxIterations}`;
-            this.showToast(`Mandelbrot set generated successfully! GPU: ${data.computeTimeMs || totalTime}ms (${data.maxIterations.toLocaleString()} iterations)`, 'success');
+            // Update UI with results - convert milliseconds to seconds
+            const renderTimeMs = data.computeTimeMs || totalTime;
+            const renderTimeSeconds = (renderTimeMs / 1000).toFixed(3);
+            this.renderTimeElement.textContent = `${renderTimeSeconds}s`;
+            this.iterationCountElement.textContent = `${data.maxIterations.toLocaleString()}`;
+            this.showToast(`Mandelbrot set generated successfully! GPU: ${renderTimeSeconds}s (${data.maxIterations.toLocaleString()} iterations)`, 'success');
             
         } catch (error) {
             console.error('Error generating Mandelbrot set:', error);

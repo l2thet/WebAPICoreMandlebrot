@@ -3,28 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mandelbrot Set Visualization</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Mandelbrot Explorer</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <link rel="stylesheet" href="styles.css?v=2.3">
 </head>
 <body>
     <div class="container">
-        <h1>Mandelbrot Set Visualization</h1>
+        <h1>Mandelbrot Set</h1>
         
-        <div class="controls">
-            <div class="status">
-                <span>UHD 4K Resolution (3840×2160) displayed at 1280×720 • Click to zoom • Right-click to reset</span>
-            </div>
-        </div>
-        
-        <div class="canvas-container">
+        <div class="main-content">
             <canvas id="mandelbrotCanvas"></canvas>
-        </div>
-        
-        <div class="info">
-            <span id="deviceInfo">Device: Loading...</span>
-            <span>Render Time: <span id="renderTime">--</span></span>
-            <span>Zoom: <span id="zoomLevel">1.0x</span></span>
-            <span>Iterations: <span id="iterationCount">--</span></span>
+            
+            <div class="legend">
+                <div class="legend-section">
+                    <h3>Controls</h3>
+                    <div class="legend-item">
+                        <span class="legend-label">Click:</span>
+                        <span class="legend-value">Zoom in</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-label">Right-click:</span>
+                        <span class="legend-value">Reset view</span>
+                    </div>
+                </div>
+                
+                <div class="legend-section">
+                    <h3>Status</h3>
+                    <div class="legend-item">
+                        <span class="legend-label">Device:</span>
+                        <span class="legend-value" id="deviceInfo">Loading...</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-label">Render Time:</span>
+                        <span class="legend-value" id="renderTime">--</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-label">Zoom Level:</span>
+                        <span class="legend-value" id="zoomLevel">1.0x</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-label">Iterations:</span>
+                        <span class="legend-value" id="iterationCount">--</span>
+                    </div>
+                </div>
+                
+                <div class="legend-section">
+                    <h3>Point Details</h3>
+                    <div class="legend-item">
+                        <span class="legend-label">Complex:</span>
+                        <span class="legend-value" id="complexCoords">--</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-label">In Set:</span>
+                        <span class="legend-value" id="inSet">--</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-label">Point Iterations:</span>
+                        <span class="legend-value" id="pointIterations">--</span>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 

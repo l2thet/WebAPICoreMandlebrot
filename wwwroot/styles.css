@@ -4,93 +4,117 @@ body {
     font-family: Arial, sans-serif;
     margin: 0;
     padding: 20px;
-    background-color: #f0f0f0;
+    background-color: #1a1a1a;
     min-height: 100vh;
     overflow: auto;
 }
 
 .container {
-    max-width: 1400px; /* Maximum width for large screens */
-    width: 100%;
+    width: fit-content;
+    max-width: 95vw;
+    height: fit-content;
     margin: 0 auto;
-    background: white;
+    background: #2d2d2d;
     border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
     padding: 20px;
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: flex-start;
 }
 
 h1 {
     text-align: center;
-    color: #333;
+    color: #e0e0e0;
     margin-bottom: 20px;
+    flex-shrink: 0;
 }
 
-.controls {
+.main-content {
     display: flex;
-    gap: 15px;
-    margin-bottom: 20px;
-    flex-wrap: wrap;
-    align-items: flex-end;
-}
-
-.control-group {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-}
-
-label {
-    font-size: 12px;
-    color: #666;
-    font-weight: bold;
-}
-
-input {
-    padding: 5px 8px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 14px;
-}
-
-.status {
-    text-align: center;
-    font-size: 14px;
-    color: #666;
-    font-weight: 500;
-    padding: 10px;
-    background: #f8f9fa;
-    border-radius: 4px;
-    border: 1px solid #e9ecef;
-}
-
-.canvas-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin: 20px 0;
-    width: 100%;
+    flex-direction: row;
+    gap: 30px;
+    align-items: flex-start;
+    justify-content: flex-start;
+    width: fit-content;
+    max-width: 80vw;
+    height: fit-content;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    margin: 0 auto;
+    padding: 20px;
 }
 
 canvas {
-    border: 1px solid #ddd;
+    border: none;
     border-radius: 4px;
-    /* Display at 1280x720 (33% of UHD for comfortable viewing) */
-    width: 1280px;
-    height: 720px;
+    /* Optimized dimensions for Mandelbrot set natural aspect ratio (1.4:1) */
+    width: 840px;
+    height: 600px;
+    max-width: calc(80vw - 470px);
+    max-height: calc(70vh - 80px);
     display: block;
-    margin: 0 auto; /* Ensure centering */
-    /* This creates super crisp rendering since we're downscaling 4K to HD */
+    flex-shrink: 0;
+    /* This creates crisp rendering by downscaling 4K to a more manageable size */
 }
 
-.info {
+/* Legend styles */
+.legend {
+    width: 420px;
+    min-width: 380px;
+    max-width: 420px;
+    background: #404040;
+    border-radius: 8px;
+    border: 1px solid #555;
+    overflow: hidden;
+    flex-shrink: 0;
+    flex-grow: 0;
+    align-self: flex-start;
+    height: fit-content;
+}
+
+.legend-section {
+    padding: 20px;
+    border-bottom: 1px solid #555;
+}
+
+.legend-section:last-child {
+    border-bottom: none;
+}
+
+.legend-section h3 {
+    margin: 0 0 15px 0;
+    font-size: 16px;
+    color: #e0e0e0;
+    font-weight: 600;
+}
+
+.legend-item {
     display: flex;
     justify-content: space-between;
-    margin-top: 15px;
+    align-items: center;
+    margin-bottom: 12px;
     font-size: 14px;
-    color: #666;
+}
+
+.legend-item:last-child {
+    margin-bottom: 0;
+}
+
+.legend-label {
+    color: #b0b0b0;
+    font-weight: 500;
+}
+
+.legend-value {
+    color: #e0e0e0;
+    font-weight: 600;
+    text-align: right;
+    max-width: 260px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .toast {
@@ -126,7 +150,7 @@ canvas {
 
 .loading {
     text-align: center;
-    color: #666;
+    color: #b0b0b0;
     font-style: italic;
 }
 
@@ -147,10 +171,7 @@ canvas {
     line-height: 1.4;
 }
 
-.canvas-container {
-    position: relative;
-    display: inline-block;
-}
+
 
 /* Loading overlay styles */
 .loading-overlay {

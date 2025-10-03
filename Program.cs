@@ -28,7 +28,28 @@ app.UseHttpsRedirection();
 
 // Serve static files FIRST - index.html will be served at root by default
 app.UseDefaultFiles();
-app.UseStaticFiles();
+
+// Configure static files with no-cache headers in development
+if (app.Environment.IsDevelopment())
+{
+    app.UseStaticFiles(new StaticFileOptions
+    {
+        OnPrepareResponse = ctx =>
+        {
+            // Disable caching for CSS and JS files in development
+            if (ctx.File.Name.EndsWith(".css") || ctx.File.Name.EndsWith(".js"))
+            {
+                ctx.Context.Response.Headers.CacheControl = "no-cache, no-store, must-revalidate";
+                ctx.Context.Response.Headers.Pragma = "no-cache";
+                ctx.Context.Response.Headers.Expires = "0";
+            }
+        }
+    });
+}
+else
+{
+    app.UseStaticFiles();
+}
 
 // Configure routing AFTER static files
 app.UseRouting();
