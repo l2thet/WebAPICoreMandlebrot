@@ -131,6 +131,8 @@ public class MandelbrotController : ControllerBase
         }
     }
 
+
+
     [HttpGet("device")]
     public IActionResult GetDeviceInfo()
     {
@@ -169,10 +171,6 @@ public class MandelbrotController : ControllerBase
             });
         }
     }
-
-
-
-
 
     private static int CalculateDynamicIterations(double zoom)
     {
@@ -271,6 +269,8 @@ public class MandelbrotController : ControllerBase
         
         output[index] = iterations;
     }
+
+
 
 
 }
