@@ -6,6 +6,7 @@ A .NET 8 Web API project with ILGPU CUDA acceleration for real-time Mandelbrot s
 
 - **Ultra-Optimized CUDA GPU Acceleration**: Advanced ILGPU kernel with mathematical optimizations for maximum performance
 - **Ultra-Detail Quality**: 100K+ base iterations scaling to 10M+ for high-quality visualization  
+- **Optimized Canvas Resolution**: Fixed 1024×768 dimensions for consistent visualization quality and ~10x performance boost
 - **Interactive Interface**: Click to zoom, right-click to reset with synchronized legend updates
 - **Backend-Controlled Zoom Logic**: All zoom calculations and validation performed server-side
 - **Automated Build Workflows**: npm scripts for complete clean-build-test automation
@@ -254,8 +255,8 @@ dotnet msbuild WebAPICoreMandlebrot.csproj -t:FullTest
 
 #### `GET /api/mandelbrot/generate`
 Generate complete Mandelbrot set data for canvas rendering
-- **Query parameters:** `width` (default: 3840), `height` (default: 2160), `centerReal` (default: -0.5), `centerImaginary` (default: 0.0), `zoom` (default: 1.0)
-- **Note:** `maxIterations` is automatically calculated based on zoom level (10K to 10M range)
+- **Query parameters:** `width` (default: 1024), `height` (default: 768), `centerReal` (default: -0.5), `centerImaginary` (default: 0.0), `zoom` (default: 1.0)
+- **Note:** `maxIterations` is automatically calculated based on zoom level (100K to 10M range)
 - **Returns:** Standardized JSON response with success/error status and coordinate mapping data
 
 #### `GET /api/mandelbrot/device`
@@ -308,7 +309,7 @@ The project includes a web-based frontend at the root URL (`https://localhost:70
 - **Comprehensive Loading States**: Visual feedback with loading overlays during computation
 - **Real-time CUDA Detection**: GPU device status and performance monitoring
 - **Backend-Authoritative Coordinates**: All mathematical calculations performed on GPU backend
-- **Responsive Design**: Centered canvas display with proper scaling and viewport management
+- **Fixed Canvas Dimensions**: Optimized 1024×768 resolution for consistent quality across all devices
 
 ### Canvas Integration
 
