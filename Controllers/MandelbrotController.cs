@@ -88,7 +88,7 @@ public class MandelbrotController : ControllerBase
         try
         {
             var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-            var result = await GenerateMandelbrotSet(width, height, maxIterations, centerReal, centerImaginary, zoom);
+            var result = await GenerateMandelbrotSet(width, height, centerReal, centerImaginary, zoom);
             stopwatch.Stop();
 
             // Calculate the coordinate bounds (same as CUDA kernel)
@@ -189,12 +189,15 @@ public class MandelbrotController : ControllerBase
         return Math.Max(SharedConstants.MinIterationCount, Math.Min(SharedConstants.MaxIterationCount, scaledIterations));
     }
 
-    private async Task<int[]> GenerateMandelbrotSet(int width, int height, int maxIterations, double centerReal = SharedConstants.DefaultCenterReal, double centerImaginary = SharedConstants.DefaultCenterImaginary, double zoom = SharedConstants.DefaultZoom)
+    private async Task<int[]> GenerateMandelbrotSet(int width, int height, double centerReal = SharedConstants.DefaultCenterReal, double centerImaginary = SharedConstants.DefaultCenterImaginary, double zoom = SharedConstants.DefaultZoom)
     {
         if (_accelerator == null)
         {
             throw new InvalidOperationException("CUDA accelerator not available");
         }
+
+        // Calculate dynamic iteration count based on zoom level
+        int maxIterations = CalculateDynamicIterations(zoom);
 
         return await Task.Run(() =>
         {

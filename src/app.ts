@@ -37,7 +37,7 @@ class MandelbrotVisualization {
     private centerImaginary: number = DefaultCenterImaginary;
     private zoom: number = DefaultZoom;
     
-    // Fixed UHD dimensions (no user input required)
+    // Fixed canvas dimensions (no user input required)
     private readonly width: number = DefaultCanvasWidth;
     private readonly height: number = DefaultCanvasHeight;
     

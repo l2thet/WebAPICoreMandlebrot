@@ -77,10 +77,10 @@ public static class SharedConstants
     
     #region Rendering Defaults
     
-    [ExportToTypeScript(Comment = "Default canvas width in pixels (UHD 4K resolution)")]
+    [ExportToTypeScript(Comment = "Default canvas width in pixels")]
     public const int DefaultCanvasWidth = 3840;
     
-    [ExportToTypeScript(Comment = "Default canvas height in pixels (UHD 4K resolution)")]
+    [ExportToTypeScript(Comment = "Default canvas height in pixels")]
     public const int DefaultCanvasHeight = 2160;
     
     #endregion
