@@ -16,7 +16,7 @@ builder.Services.AddSingleton<Context>(provider =>
 
 builder.Services.AddSingleton<IILGPUAcceleratorFactory, ILGPUAcceleratorFactory>();
 
-builder.Services.AddSingleton<ILGPUAcceleratorService>(provider =>
+builder.Services.AddSingleton<IILGPUAcceleratorService>(provider =>
 {
     var factory = provider.GetRequiredService<IILGPUAcceleratorFactory>();
     return factory.CreateAcceleratorService();

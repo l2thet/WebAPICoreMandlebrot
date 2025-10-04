@@ -5,7 +5,7 @@ namespace WebAPICoreMandlebrot.Services;
 /// <summary>
 /// Service that provides access to ILGPU CUDA accelerator and error information
 /// </summary>
-public class ILGPUAcceleratorService
+public class ILGPUAcceleratorService : IILGPUAcceleratorService
 {
     public Accelerator? Accelerator { get; }
     public string? ErrorMessage { get; }

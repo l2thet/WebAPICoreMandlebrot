@@ -4,7 +4,12 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="WebAPICoreMandlebrot.Tests/**" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="ILGPU" Version="1.5.3" />
@@ -14,9 +19,7 @@
 
   <!-- Check if Node.js is available and run constants generation -->
   <Target Name="CheckNodeJs" BeforeTargets="Build">
-    <Exec Command="node --version" 
-          ContinueOnError="true" 
-          IgnoreExitCode="true">
+    <Exec Command="node --version" ContinueOnError="true" IgnoreExitCode="true">
       <Output TaskParameter="ExitCode" PropertyName="NodeExitCode" />
     </Exec>
   </Target>
@@ -24,9 +27,7 @@
   <!-- Generate TypeScript constants if Node.js is available -->
   <Target Name="GenerateTypeScriptConstants" AfterTargets="CheckNodeJs" BeforeTargets="Build" Condition="'$(NodeExitCode)' == '0'">
     <Message Text="🔧 Generating TypeScript constants from C# SharedConstants..." Importance="high" />
-    <Exec Command="npx tsx Build/generate-constants.ts" 
-          ContinueOnError="true"
-          WorkingDirectory="$(MSBuildProjectDirectory)" />
+    <Exec Command="npx tsx Build/generate-constants.ts" ContinueOnError="true" WorkingDirectory="$(MSBuildProjectDirectory)" />
   </Target>
 
   <!-- Skip message when Node.js not available -->
@@ -37,9 +38,30 @@
   <!-- Compile TypeScript after constants generation -->
   <Target Name="CompileTypeScript" AfterTargets="GenerateTypeScriptConstants" BeforeTargets="Build" Condition="'$(NodeExitCode)' == '0'">
     <Message Text="🔧 Compiling TypeScript..." Importance="high" />
-    <Exec Command="npx tsc" 
-          ContinueOnError="true"
-          WorkingDirectory="$(MSBuildProjectDirectory)" />
+    <Exec Command="npx tsc" ContinueOnError="true" WorkingDirectory="$(MSBuildProjectDirectory)" />
+  </Target>
+
+  <!-- Custom target for full clean-build-test workflow -->
+  <Target Name="FullTest">
+    <Message Text="🧹 Starting full clean-build-test workflow..." Importance="high" />
+    
+    <!-- Clean everything -->
+    <Message Text="🧹 Cleaning solution..." Importance="normal" />
+    <Exec Command="dotnet clean" WorkingDirectory="$(MSBuildProjectDirectory)" />
+    
+    <!-- Restore packages -->
+    <Message Text="📦 Restoring packages..." Importance="normal" />
+    <Exec Command="dotnet restore" WorkingDirectory="$(MSBuildProjectDirectory)" />
+    
+    <!-- Build solution -->
+    <Message Text="🔨 Building solution..." Importance="normal" />
+    <Exec Command="dotnet build --no-restore" WorkingDirectory="$(MSBuildProjectDirectory)" />
+    
+    <!-- Run tests -->
+    <Message Text="🧪 Running tests..." Importance="normal" />
+    <Exec Command="dotnet test --no-build --verbosity normal" WorkingDirectory="$(MSBuildProjectDirectory)" />
+    
+    <Message Text="✅ Full workflow completed!" Importance="high" />
   </Target>
 
 </Project>

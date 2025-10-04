@@ -1,0 +1,13 @@
+# Ignore compiled output
+wwwroot/js/**
+node_modules/**
+bin/**
+obj/**
+
+# Ignore generated files
+src/shared-constants.ts
+
+# Ignore package files
+package-lock.json
+*.min.js
+*.min.css

@@ -35,8 +35,7 @@ bld/
 # Visual Studio 2015/2017 cache/options directory
 .vs/
 
-# Visual Studio Code (user-specific configurations)
-.vscode/
+# Visual Studio Code (user-specific configurations) - handled later with specific inclusions
 
 # MSTest test Results
 [Tt]est[Rr]esult*/
@@ -280,13 +279,37 @@ FakesAssemblies/
 node_modules/
 
 # TypeScript build artifacts - exclude transpiled JS files and maps
-wwwroot/js/*.js
-wwwroot/js/*.js.map
-wwwroot/js/*.d.ts
-wwwroot/js/*.d.ts.map
+wwwroot/js/
+wwwroot/app.js
+wwwroot/app.js.map
+wwwroot/*.d.ts
+wwwroot/*.d.ts.map
 
 # Auto-generated TypeScript constants file
 src/shared-constants.ts
+
+# Jest test coverage output
+coverage/
+*.lcov
+
+# .NET Test Results and Coverage
+TestResults/
+coverage.xml
+coverage.cobertura.xml
+*.coverage
+*.coveragexml
+
+# npm log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# TypeScript build info cache
+*.tsbuildinfo
+
+# ESLint cache
+.eslintcache
 
 # Visual Studio 6 build log
 *.plg

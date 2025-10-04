@@ -1,18 +1,14 @@
-import { 
-    MandelbrotResponse, 
-    DeviceResponse, 
-    ToastType
-} from './types.js';
+import { MandelbrotResponse, DeviceResponse, ToastType } from './types.js';
 import {
     DefaultCenterReal,
-    DefaultCenterImaginary, 
+    DefaultCenterImaginary,
     DefaultZoom,
     ComplexPlaneMinReal,
     ComplexPlaneMaxReal,
     ComplexPlaneMinImaginary,
     ComplexPlaneMaxImaginary,
     DefaultCanvasWidth,
-    DefaultCanvasHeight
+    DefaultCanvasHeight,
 } from './shared-constants.js';
 
 class MandelbrotVisualization {
@@ -31,21 +27,20 @@ class MandelbrotVisualization {
     private loadingSpinner!: HTMLDivElement;
     // Store iteration data from original Mandelbrot generation
     private currentIterationData: number[] | null = null;
-    
+
     // Current view parameters (updated by user interaction and backend)
     private centerReal: number = DefaultCenterReal;
     private centerImaginary: number = DefaultCenterImaginary;
     private zoom: number = DefaultZoom;
-    
+
     // Fixed canvas dimensions (no user input required)
     private readonly width: number = DefaultCanvasWidth;
     private readonly height: number = DefaultCanvasHeight;
-    
+
     // Dynamic backend-calculated iteration count
     private currentMaxIterations: number = 5000; // Fallback until first generation
-    
-    // Zoom constraints
-    private readonly MAX_ZOOM = 1000000.0;
+
+    // Zoom constraints removed - backend handles zoom limits
 
     constructor() {
         this.initializeElements();
@@ -63,7 +58,7 @@ class MandelbrotVisualization {
             throw new Error('Could not get 2D context from canvas');
         }
         this.ctx = context;
-        
+
         this.deviceInfoElement = this.getElement<HTMLElement>('deviceInfo');
         this.renderTimeElement = this.getElement<HTMLElement>('renderTime');
         this.zoomLevelElement = this.getElement<HTMLElement>('zoomLevel');
@@ -92,18 +87,18 @@ class MandelbrotVisualization {
         this.loadingOverlay = document.createElement('div');
         this.loadingOverlay.className = 'loading-overlay';
         this.loadingOverlay.style.display = 'none';
-        
+
         // Create spinner
         this.loadingSpinner = document.createElement('div');
         this.loadingSpinner.className = 'loading-spinner';
-        
+
         this.loadingOverlay.appendChild(this.loadingSpinner);
-        
+
         // Create a wrapper div for the canvas and append loading overlay
         const canvasWrapper = document.createElement('div');
         canvasWrapper.style.position = 'relative';
         canvasWrapper.style.display = 'inline-block';
-        
+
         // Move canvas into wrapper
         const canvas = document.getElementById('mandelbrotCanvas') as HTMLCanvasElement;
         if (canvas && canvas.parentNode) {
@@ -114,21 +109,21 @@ class MandelbrotVisualization {
     }
 
     private setupEventListeners(): void {
-        this.canvas.addEventListener('click', (e) => this.handleCanvasClick(e));
-        this.canvas.addEventListener('contextmenu', (e) => this.handleRightClick(e));
-        this.canvas.addEventListener('mousemove', (e) => this.handleMouseMove(e));
+        this.canvas.addEventListener('click', e => this.handleCanvasClick(e));
+        this.canvas.addEventListener('contextmenu', e => this.handleRightClick(e));
+        this.canvas.addEventListener('mousemove', e => this.handleMouseMove(e));
         this.canvas.addEventListener('mouseleave', () => this.handleMouseLeave());
     }
 
     private showToast(message: string, type: ToastType = 'info'): void {
         // Remove existing toasts
         document.querySelectorAll('.toast').forEach(toast => toast.remove());
-        
+
         const toast = document.createElement('div');
         toast.className = `toast ${type}`;
         toast.textContent = message;
         document.body.appendChild(toast);
-        
+
         setTimeout(() => toast.classList.add('show'), 100);
         setTimeout(() => {
             toast.classList.remove('show');
@@ -140,10 +135,9 @@ class MandelbrotVisualization {
         try {
             const response = await fetch('/api/mandelbrot/device');
             const data: DeviceResponse = await response.json();
-            
+
             if (data.hasCudaDevice && data.currentDevice) {
-                this.deviceInfoElement.textContent = 
-                    `${data.currentDevice.name} (${data.currentDevice.acceleratorType})`;
+                this.deviceInfoElement.textContent = `${data.currentDevice.name} (${data.currentDevice.acceleratorType})`;
             } else {
                 this.deviceInfoElement.textContent = 'CUDA Not Available';
                 this.showToast(data.error || 'CUDA device not detected', 'error');
@@ -158,7 +152,7 @@ class MandelbrotVisualization {
         if (iterations === maxIterations) {
             return [0, 0, 0]; // Black for points in the set
         }
-        
+
         const ratio = iterations / 255;
         const r = Math.floor(9 * (1 - ratio) * ratio * ratio * ratio * 255);
         const g = Math.floor(15 * (1 - ratio) * (1 - ratio) * ratio * ratio * 255);
@@ -166,8 +160,6 @@ class MandelbrotVisualization {
 
         return [r, g, b];
     }
-
-
 
     // Store coordinate bounds from backend response (initialized with defaults)
     private viewMinReal: number = ComplexPlaneMinReal;
@@ -177,16 +169,19 @@ class MandelbrotVisualization {
 
     private canvasToComplex(canvasX: number, canvasY: number): { real: number; imaginary: number } {
         // Use the exact coordinate bounds provided by the CUDA backend
-        const real = this.viewMinReal + canvasX * (this.viewMaxReal - this.viewMinReal) / this.width;
-        const imaginary = this.viewMinImaginary + canvasY * (this.viewMaxImaginary - this.viewMinImaginary) / this.height;
-        
+        const real =
+            this.viewMinReal + (canvasX * (this.viewMaxReal - this.viewMinReal)) / this.width;
+        const imaginary =
+            this.viewMinImaginary +
+            (canvasY * (this.viewMaxImaginary - this.viewMinImaginary)) / this.height;
+
         return { real, imaginary };
     }
 
-
-
     private handleCanvasClick(event: MouseEvent): void {
-        if (this.isGenerating) return; // Prevent clicks during generation
+        if (this.isGenerating) {
+            return;
+        } // Prevent clicks during generation
 
         const rect = this.canvas.getBoundingClientRect();
         const canvasX = ((event.clientX - rect.left) * this.canvas.width) / rect.width;
@@ -194,37 +189,36 @@ class MandelbrotVisualization {
 
         const { real, imaginary } = this.canvasToComplex(canvasX, canvasY);
 
-        // Calculate new zoom level (zoom in by 2x on each click)
-        const newZoom = this.zoom * 2.0;
-        
-        if (newZoom > this.MAX_ZOOM) {
-            this.showToast(`Maximum zoom level reached (${this.MAX_ZOOM}x)`, 'info');
-            return;
-        }
+        // For zoom in: send current zoom * 2, let backend validate and return actual zoom used
+        const requestedZoom = this.zoom * 2.0;
 
         // Update view parameters
         this.centerReal = real;
         this.centerImaginary = imaginary;
-        this.zoom = newZoom;
+        this.zoom = requestedZoom; // This will be overridden by backend response
 
-        this.updateZoomDisplay();
+        // Don't update zoom display immediately - let it update with other values when API responds
         this.generateMandelbrot();
     }
 
     private resetView(): void {
-        if (this.isGenerating) return; // Prevent reset during generation
+        if (this.isGenerating) {
+            return;
+        } // Prevent reset during generation
 
         this.centerReal = DefaultCenterReal;
         this.centerImaginary = DefaultCenterImaginary;
-        this.zoom = DefaultZoom;
+        this.zoom = DefaultZoom; // Send default zoom request to backend
 
-        this.updateZoomDisplay();
+        // Don't update zoom display immediately - let it update with other values when API responds
         this.generateMandelbrot();
     }
 
     private handleRightClick(event: MouseEvent): void {
-        if (this.isGenerating) return; // Prevent right-click during generation
-        
+        if (this.isGenerating) {
+            return;
+        } // Prevent right-click during generation
+
         event.preventDefault(); // Prevent context menu
         this.resetView();
         this.showToast('View reset to default', 'info');
@@ -234,20 +228,24 @@ class MandelbrotVisualization {
         const rect = this.canvas.getBoundingClientRect();
         const x = event.clientX - rect.left;
         const y = event.clientY - rect.top;
-        
+
         // Scale coordinates to actual canvas size (not display size)
         const scaleX = this.canvas.width / rect.width;
         const scaleY = this.canvas.height / rect.height;
         const canvasX = x * scaleX;
         const canvasY = y * scaleY;
-        
+
         // Convert canvas coordinates to complex plane coordinates
-        const complexReal = this.centerReal + (canvasX - this.canvas.width / 2) / (this.canvas.width / 2) * (2.0 / this.zoom);
-        const complexImag = this.centerImaginary - (canvasY - this.canvas.height / 2) / (this.canvas.height / 2) * (2.0 / this.zoom);
-        
+        const complexReal =
+            this.centerReal +
+            ((canvasX - this.canvas.width / 2) / (this.canvas.width / 2)) * (2.0 / this.zoom);
+        const complexImag =
+            this.centerImaginary -
+            ((canvasY - this.canvas.height / 2) / (this.canvas.height / 2)) * (2.0 / this.zoom);
+
         // Update the complex coordinates display
         this.complexCoordsElement.textContent = `${complexReal.toFixed(6)} + ${complexImag.toFixed(6)}i`;
-        
+
         // Get iteration data from stored array
         this.updatePointDetailsFromStoredData(canvasX, canvasY);
     }
@@ -270,17 +268,17 @@ class MandelbrotVisualization {
         // Ensure coordinates are within canvas bounds
         const x = Math.max(0, Math.min(Math.floor(canvasX), this.canvas.width - 1));
         const y = Math.max(0, Math.min(Math.floor(canvasY), this.canvas.height - 1));
-        
+
         // Calculate array index (row-major order: y * width + x)
         const index = y * this.canvas.width + x;
-        
+
         // Check if index is valid
         if (index < 0 || index >= this.currentIterationData.length) {
             this.inSetElement.textContent = '--';
             this.pointIterationsElement.textContent = '--';
             return;
         }
-        
+
         // Get iteration count for this pixel
         const iterations = this.currentIterationData[index];
         if (iterations === undefined) {
@@ -288,18 +286,18 @@ class MandelbrotVisualization {
             this.pointIterationsElement.textContent = '--';
             return;
         }
-        
+
         const inSet = iterations >= this.currentMaxIterations;
-        
+
         // Update the legend
         this.inSetElement.textContent = inSet ? 'Yes' : 'No';
-        this.pointIterationsElement.textContent = inSet ? `${this.currentMaxIterations}+` : `${iterations}`;
+        this.pointIterationsElement.textContent = inSet
+            ? `${this.currentMaxIterations}+`
+            : `${iterations}`;
     }
 
     private updateZoomDisplay(): void {
-        const zoomText = this.zoom >= 1 
-            ? `${this.zoom.toFixed(1)}x` 
-            : `${this.zoom.toFixed(3)}x`;
+        const zoomText = this.zoom >= 1 ? `${this.zoom.toFixed(1)}x` : `${this.zoom.toFixed(3)}x`;
         this.zoomLevelElement.textContent = zoomText;
     }
 
@@ -307,7 +305,7 @@ class MandelbrotVisualization {
         // Gray out the canvas
         this.canvas.style.opacity = '0.5';
         this.canvas.style.pointerEvents = 'none';
-        
+
         // Show loading overlay
         this.loadingOverlay.style.display = 'flex';
     }
@@ -316,80 +314,97 @@ class MandelbrotVisualization {
         // Restore canvas
         this.canvas.style.opacity = '1';
         this.canvas.style.pointerEvents = 'auto';
-        
+
         // Hide loading overlay
         this.loadingOverlay.style.display = 'none';
     }
 
     private async generateMandelbrot(): Promise<void> {
-        if (this.isGenerating) return;
-        
+        if (this.isGenerating) {
+            return;
+        }
+
         this.isGenerating = true;
         this.showLoadingState();
-        
+
         try {
             const startTime = performance.now();
-            
+
             // Make API call - let backend calculate iterations based on zoom
             const response = await fetch(
                 `/api/mandelbrot/generate?width=${this.width}&height=${this.height}&centerReal=${this.centerReal}&centerImaginary=${this.centerImaginary}&zoom=${this.zoom}`
             );
-            
+
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
             const data: MandelbrotResponse = await response.json();
-            
+
             if (!data.success) {
                 throw new Error(data.error || 'Generation failed');
             }
-            
+
             if (!data.data || data.data.length === 0) {
                 throw new Error('No image data received from API');
             }
-            
+
             // Update coordinate bounds from CUDA response (authoritative source)
-            if (data.viewMinReal !== undefined && data.viewMaxReal !== undefined &&
-                data.viewMinImaginary !== undefined && data.viewMaxImaginary !== undefined) {
+            if (
+                data.viewMinReal !== undefined &&
+                data.viewMaxReal !== undefined &&
+                data.viewMinImaginary !== undefined &&
+                data.viewMaxImaginary !== undefined
+            ) {
                 this.viewMinReal = data.viewMinReal;
                 this.viewMaxReal = data.viewMaxReal;
                 this.viewMinImaginary = data.viewMinImaginary;
                 this.viewMaxImaginary = data.viewMaxImaginary;
             }
-            
+
             // Update current view parameters from backend response
-            if (data.centerReal !== undefined && data.centerImaginary !== undefined && data.zoom !== undefined) {
+            if (
+                data.centerReal !== undefined &&
+                data.centerImaginary !== undefined &&
+                data.zoom !== undefined
+            ) {
                 this.centerReal = data.centerReal;
                 this.centerImaginary = data.centerImaginary;
                 this.zoom = data.zoom;
             }
-            
+
             // Update maxIterations with the value calculated by backend
             this.currentMaxIterations = data.maxIterations;
-            
+
+            // Update zoom with the actual value used by backend (removes frontend calculations)
+            if (data.zoom !== undefined) {
+                this.zoom = data.zoom;
+            }
+
             // Store the iteration data for mouse hover calculations
             this.currentIterationData = data.data;
-            
+
             // Now that we have data, set canvas size and render
             this.canvas.width = this.width;
             this.canvas.height = this.height;
             this.renderToCanvas(data.data, this.width, this.height, data.maxIterations);
-            
+
             const endTime = performance.now();
             const totalTime = Math.round(endTime - startTime);
-            
+
             // Update UI with results - convert milliseconds to seconds
             const renderTimeMs = data.computeTimeMs || totalTime;
             const renderTimeSeconds = (renderTimeMs / 1000).toFixed(3);
             this.renderTimeElement.textContent = `${renderTimeSeconds}s`;
             this.iterationCountElement.textContent = `${data.maxIterations.toLocaleString()}`;
-            this.showToast(`Mandelbrot set generated successfully! GPU: ${renderTimeSeconds}s (${data.maxIterations.toLocaleString()} iterations)`, 'success');
-            
+            this.updateZoomDisplay(); // Update zoom display with other values after API response
+            this.showToast(
+                `Mandelbrot set generated successfully! GPU: ${renderTimeSeconds}s (${data.maxIterations.toLocaleString()} iterations)`,
+                'success'
+            );
         } catch (error) {
-            console.error('Error generating Mandelbrot set:', error);
             const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-            this.showToast(errorMessage, 'error');
+            this.showToast(`Error generating Mandelbrot set: ${errorMessage}`, 'error');
             this.renderErrorCanvas();
         } finally {
             this.isGenerating = false;
@@ -397,24 +412,31 @@ class MandelbrotVisualization {
         }
     }
 
-    private renderToCanvas(data: number[], width: number, height: number, maxIterations: number): void {
+    private renderToCanvas(
+        data: number[],
+        width: number,
+        height: number,
+        maxIterations: number
+    ): void {
         this.ctx.clearRect(0, 0, width, height);
-        
+
         const imageData = this.ctx.createImageData(width, height);
         const pixels = imageData.data;
-        
+
         for (let i = 0; i < data.length; i++) {
             const iterations = data[i];
-            if (iterations === undefined) continue;
+            if (iterations === undefined) {
+                continue;
+            }
             const [r, g, b] = this.getColor(iterations, maxIterations);
-            
+
             const pixelIndex = i * 4;
-            pixels[pixelIndex] = r;         // Red
-            pixels[pixelIndex + 1] = g;     // Green
-            pixels[pixelIndex + 2] = b;     // Blue
-            pixels[pixelIndex + 3] = 255;   // Alpha
+            pixels[pixelIndex] = r; // Red
+            pixels[pixelIndex + 1] = g; // Green
+            pixels[pixelIndex + 2] = b; // Blue
+            pixels[pixelIndex + 3] = 255; // Alpha
         }
-        
+
         this.ctx.putImageData(imageData, 0, 0);
     }
 
@@ -442,11 +464,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
         const app = new MandelbrotVisualization();
         await app.initialize();
-        
+
         // Make app globally available for debugging
-        (window as any).mandelbrotApp = app;
+        (window as unknown as Record<string, unknown>).mandelbrotApp = app;
     } catch (error) {
-        console.error('Failed to initialize Mandelbrot application:', error);
-        alert('Failed to initialize application. Please check the console for details.');
+        const errorMessage =
+            error instanceof Error ? error.message : 'Unknown initialization error';
+        alert(`Failed to initialize application: ${errorMessage}`);
     }
 });
