@@ -29,20 +29,26 @@ public static class SharedConstants
     [ExportToTypeScript(Comment = "Default zoom level")]
     public const double DefaultZoom = 1.0;
     
+    [ExportToTypeScript(Comment = "Minimum zoom level")]
+    public const double MinZoom = 0.1;
+    
+    [ExportToTypeScript(Comment = "Maximum zoom level to prevent excessive computation")]
+    public const double MaxZoom = 1000000.0;
+    
     [ExportToTypeScript(Comment = "Default maximum iterations for computation")]
     public const int DefaultMaxIterations = 100;
     
     [ExportToTypeScript(Comment = "Extended maximum iterations for detailed computation")]
     public const int DefaultMaxIterationsExtended = 1000;
     
-    [ExportToTypeScript(Comment = "Base iteration count for zoom scaling calculations")]
-    public const int BaseIterationCount = 10000;
+    [ExportToTypeScript(Comment = "Base iteration count for zoom scaling calculations - Ultra detail quality")]
+    public const int BaseIterationCount = 100000;
     
-    [ExportToTypeScript(Comment = "Iteration scaling factor per zoom level (iterations = base * log(zoom) * factor)")]
-    public const double IterationScalingFactor = 8000.0;
+    [ExportToTypeScript(Comment = "Iteration scaling factor per zoom level for ultra-detail (iterations = base + log2(zoom) * factor)")]
+    public const double IterationScalingFactor = 50000.0;
     
-    [ExportToTypeScript(Comment = "Minimum iterations regardless of zoom level")]
-    public const int MinIterationCount = 10000;
+    [ExportToTypeScript(Comment = "Minimum iterations regardless of zoom level - Ultra detail quality")]
+    public const int MinIterationCount = 100000;
     
     [ExportToTypeScript(Comment = "Maximum iterations to prevent excessive computation")]
     public const int MaxIterationCount = 10000000;

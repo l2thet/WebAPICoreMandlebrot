@@ -10,7 +10,7 @@ export interface MandelbrotResponse {
     computeTimeMs?: number;
     acceleratorType?: string;
     acceleratorName?: string;
-    
+
     // Coordinate mapping data from CUDA calculations
     viewMinReal?: number;
     viewMaxReal?: number;
@@ -40,7 +40,5 @@ export interface DeviceResponse {
     error?: string;
     statusMessage?: string;
 }
-
-
 
 export type ToastType = 'info' | 'success' | 'error';
