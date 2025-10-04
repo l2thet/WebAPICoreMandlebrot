@@ -83,11 +83,11 @@ public static class SharedConstants
     
     #region Rendering Defaults
     
-    [ExportToTypeScript(Comment = "Default canvas width in pixels")]
-    public const int DefaultCanvasWidth = 3840;
+    [ExportToTypeScript(Comment = "Optimal canvas width for consistent Mandelbrot visualization (4:3 aspect ratio)")]
+    public const int DefaultCanvasWidth = 1024;
     
-    [ExportToTypeScript(Comment = "Default canvas height in pixels")]
-    public const int DefaultCanvasHeight = 2160;
+    [ExportToTypeScript(Comment = "Optimal canvas height for consistent Mandelbrot visualization (4:3 aspect ratio)")]
+    public const int DefaultCanvasHeight = 768;
     
     #endregion
 }
