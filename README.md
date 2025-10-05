@@ -111,7 +111,7 @@ For production deployment, replace the development certificate with a proper SSL
 ### 1. Setup HTTPS Certificate (First Time Only)
 ```bash
 # Navigate to the main project directory
-cd WebAPICoreMandlebrot
+cd WebAPICoreMandelbrot
 
 # Trust the development certificate for HTTPS
 dotnet dev-certs https --trust
@@ -120,7 +120,7 @@ dotnet dev-certs https --trust
 ### 2. Install Frontend Dependencies
 ```bash
 # From the main project directory
-cd WebAPICoreMandlebrot
+cd WebAPICoreMandelbrot
 npm install
 ```
 
@@ -133,19 +133,19 @@ dotnet restore
 ### 4. Automated Workflow (Recommended)
 ```bash
 # From the main project directory
-cd WebAPICoreMandlebrot
+cd WebAPICoreMandelbrot
 
 # Complete clean-build workflow
 npm run build:full
 
 # Then start the server (from solution root or project directory)
-dotnet run --project WebAPICoreMandlebrot
+dotnet run --project WebAPICoreMandelbrot
 ```
 
 ### 5. Manual Steps (Alternative)
 ```bash
 # From the main project directory
-cd WebAPICoreMandlebrot
+cd WebAPICoreMandelbrot
 
 # Build TypeScript
 npm run build
@@ -155,7 +155,7 @@ cd ..
 dotnet build
 
 # Run the main project
-dotnet run --project WebAPICoreMandlebrot
+dotnet run --project WebAPICoreMandelbrot
 ```
 
 ### 6. VS Code Development
@@ -508,18 +508,18 @@ WebAPICoreMandelbrotSolution/          # 🏠 Solution Root & Git Repository
 │   ├── appsettings.json               # Application configuration
 │   ├── appsettings.Development.json   # Development environment settings
 │   └── README.md                      # 📖 This comprehensive documentation
-├── WebAPICoreMandlebrot.Contracts/    # 📄 Shared response contracts
+├── WebAPICoreMandelbrot.Contracts/    # 📄 Shared response contracts
 │   ├── Responses/
 │   │   ├── MandelbrotResponse.cs      # API response models
 │   │   └── DeviceInfoResponse.cs      # Device info response
-│   └── WebAPICoreMandlebrot.Contracts.csproj
-├── WebAPICoreMandlebrot.TypeScriptGenerator/  # 🔧 TypeScript interface generator
+│   └── WebAPICoreMandelbrot.Contracts.csproj
+├── WebAPICoreMandelbrot.TypeScriptGenerator/  # 🔧 TypeScript interface generator
 │   ├── TypeScriptGenerator.cs        # C# reflection-based generator
 │   ├── Program.cs                     # Console application entry point
-│   └── WebAPICoreMandlebrot.TypeScriptGenerator.csproj
-└── WebAPICoreMandlebrot.Tests/        # 🧪 .NET unit tests
+│   └── WebAPICoreMandelbrot.TypeScriptGenerator.csproj
+└── WebAPICoreMandelbrot.Tests/        # 🧪 .NET unit tests
     ├── MandelbrotControllerTests.cs   # Controller test suite
-    └── WebAPICoreMandlebrot.Tests.csproj
+    └── WebAPICoreMandelbrot.Tests.csproj
 ```
 
 ## Device Compatibility
@@ -559,12 +559,12 @@ $PSDefaultParameterValues['Invoke-WebRequest:SkipCertificateCheck'] = $true
 ## Next Steps
 
 1. **Open in VS Code**: From solution root, run `code .` for workspace development
-2. **Run the application**: `dotnet run --project WebAPICoreMandlebrot` (from solution root)
+2. **Run the application**: `dotnet run --project WebAPICoreMandelbrot` (from solution root)
 3. **Open the frontend**: Navigate to `https://localhost:7000`
 4. **Interact with visualization**: Click to zoom, right-click to reset
 5. **Monitor performance**: Check GPU compute times and device status
 6. **Test API directly**: Use Swagger UI at `https://localhost:7000/swagger`
-7. **Build frontend**: Use `npm run build` from WebAPICoreMandlebrot directory
+7. **Build frontend**: Use `npm run build` from WebAPICoreMandelbrot directory
 
 ## Canvas Integration Tips
 
@@ -597,10 +597,10 @@ This solution is designed to work from the **solution root level** (`WebAPICoreM
 # From solution root
 dotnet restore                         # Restore all projects
 dotnet build                          # Build entire solution  
-dotnet run --project WebAPICoreMandlebrot  # Run main project
+dotnet run --project WebAPICoreMandelbrot  # Run main project
 code .                                # Open in VS Code workspace
 
-# From WebAPICoreMandlebrot/ directory  
+# From WebAPICoreMandelbrot/ directory  
 npm install                           # Install frontend dependencies
 npm run build:full                    # Build TypeScript + .NET
 npm run build                         # Build TypeScript with linting
