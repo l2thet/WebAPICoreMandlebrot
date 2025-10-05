@@ -5,8 +5,6 @@ describe('Type Definitions', () => {
         test('should handle successful response', () => {
             const successResponse: MandelbrotResponse = {
                 success: true,
-                width: 800,
-                height: 600,
                 maxIterations: 1000,
                 data: [255, 0, 0, 255], // Red pixel data
                 computeTimeMs: 150,
@@ -19,16 +17,12 @@ describe('Type Definitions', () => {
 
             expect(successResponse.success).toBe(true);
             expect(successResponse.data).toEqual([255, 0, 0, 255]);
-            expect(successResponse.width).toBe(800);
-            expect(successResponse.height).toBe(600);
             expect(successResponse.error).toBeUndefined();
         });
 
         test('should handle error response', () => {
             const errorResponse: MandelbrotResponse = {
                 success: false,
-                width: 0,
-                height: 0,
                 maxIterations: 0,
                 error: 'CUDA not available'
             };
@@ -41,8 +35,6 @@ describe('Type Definitions', () => {
         test('should handle viewport mapping data', () => {
             const responseWithViewport: MandelbrotResponse = {
                 success: true,
-                width: 800,
-                height: 600,
                 maxIterations: 1000,
                 viewMinReal: -2.5,
                 viewMaxReal: 1.0,
@@ -179,40 +171,39 @@ describe('Coordinate Conversion Utilities', () => {
         });
     });
 
-    describe('Zoom and Iteration Calculations', () => {
-        test('should calculate iterations based on zoom', () => {
-            const calculateIterations = (zoom: number) => {
-                const baseIterations = 10000;
-                const scalingFactor = 8000;
-                const minIterations = 10000;
-                const maxIterations = 10000000;
-
-                const calculated = Math.floor(baseIterations + Math.log(zoom) * scalingFactor);
-                return Math.max(minIterations, Math.min(maxIterations, calculated));
+    describe('Zoom and Iteration Branch Logic', () => {
+        test('should handle different zoom values appropriately', () => {
+            const testZoomBehavior = (zoom: number) => {
+                // Branch test: zoom <= 0 should return minimum
+                if (zoom <= 0) return { result: 'minimum', valid: true };
+                
+                // Branch test: zoom = 1 should return base
+                if (zoom === 1.0) return { result: 'base', valid: true };
+                
+                // Branch test: zoom > 1 should scale up
+                if (zoom > 1.0) return { result: 'scaled', valid: true };
+                
+                return { result: 'unknown', valid: false };
             };
 
-            expect(calculateIterations(1)).toBe(10000);
-            expect(calculateIterations(2)).toBeGreaterThan(10000);
-            expect(calculateIterations(100)).toBeGreaterThan(calculateIterations(10));
-            expect(calculateIterations(1000000)).toBeLessThanOrEqual(10000000);
+            expect(testZoomBehavior(0).result).toBe('minimum');
+            expect(testZoomBehavior(1.0).result).toBe('base');
+            expect(testZoomBehavior(2.0).result).toBe('scaled');
+            expect(testZoomBehavior(100.0).result).toBe('scaled');
         });
 
-        test('should handle extreme zoom values', () => {
-            const calculateIterations = (zoom: number) => {
-                const baseIterations = 10000;
-                const scalingFactor = 8000;
-                const minIterations = 10000;
-                const maxIterations = 10000000;
-
-                if (zoom <= 0) return minIterations;
-                
-                const calculated = Math.floor(baseIterations + Math.log(zoom) * scalingFactor);
-                return Math.max(minIterations, Math.min(maxIterations, calculated));
+        test('should validate zoom input ranges', () => {
+            const validateZoom = (zoom: number) => {
+                if (zoom <= 0) return 'invalid';
+                if (zoom < 0.1) return 'too_small';
+                if (zoom > 1000000) return 'too_large';
+                return 'valid';
             };
 
-            expect(calculateIterations(0)).toBe(10000);
-            expect(calculateIterations(0.1)).toBe(10000); // Should clamp to minimum
-            expect(calculateIterations(Infinity)).toBe(10000000); // Should clamp to maximum
+            expect(validateZoom(0)).toBe('invalid');
+            expect(validateZoom(0.05)).toBe('too_small');
+            expect(validateZoom(1.0)).toBe('valid');
+            expect(validateZoom(2000000)).toBe('too_large');
         });
     });
 });

@@ -255,8 +255,8 @@ dotnet msbuild WebAPICoreMandlebrot.csproj -t:FullTest
 
 #### `GET /api/mandelbrot/generate`
 Generate complete Mandelbrot set data for canvas rendering
-- **Query parameters:** `width` (default: 1024), `height` (default: 768), `centerReal` (default: -0.5), `centerImaginary` (default: 0.0), `zoom` (default: 1.0)
-- **Note:** `maxIterations` is automatically calculated based on zoom level (100K to 10M range)
+- **Query parameters:** `centerReal` (default: -0.5), `centerImaginary` (default: 0.0), `zoom` (default: 1.0)
+- **Note:** Canvas dimensions are fixed at 1024×768 pixels, `maxIterations` is automatically calculated based on zoom level (100K to 10M range)
 - **Returns:** Standardized JSON response with success/error status and coordinate mapping data
 
 #### `GET /api/mandelbrot/device`
@@ -271,10 +271,8 @@ All endpoints return a standardized response format:
 ```json
 {
   "success": true,
-  "width": 3840,
-  "height": 2160,
   "maxIterations": 15000,
-  "data": [0, 1, 2, 5, 100, 15, ...], // One value per pixel (width × height array)
+  "data": [0, 1, 2, 5, 100, 15, ...], // One value per pixel (1024 × 768 array)
   "computeTimeMs": 5,
   "acceleratorType": "Cuda",
   "acceleratorName": "NVIDIA GeForce RTX 5070",
@@ -293,8 +291,6 @@ All endpoints return a standardized response format:
 {
   "success": false,
   "error": "NVIDIA CUDA device not available",
-  "width": 3840,
-  "height": 2160,
   "maxIterations": 10000
 }
 ```
@@ -309,7 +305,7 @@ The project includes a web-based frontend at the root URL (`https://localhost:70
 - **Comprehensive Loading States**: Visual feedback with loading overlays during computation
 - **Real-time CUDA Detection**: GPU device status and performance monitoring
 - **Backend-Authoritative Coordinates**: All mathematical calculations performed on GPU backend
-- **Fixed Canvas Dimensions**: Optimized 1024×768 resolution for consistent quality across all devices
+- **Fixed Canvas Dimensions**: Optimized 1024×768 (4:3 aspect ratio) for consistent quality across all devices
 
 ### Canvas Integration
 
@@ -361,21 +357,60 @@ This project uses CUDA for GPU computation:
 ## Project Structure
 
 ```
-WebAPICoreMandlebrot/
-├── Controllers/
-│   └── MandelbrotController.cs    # Mandelbrot generation endpoints for canvas rendering
-├── Services/
-│   ├── ILGPUAcceleratorService.cs # CUDA accelerator service with status information
-│   └── ILGPUAcceleratorFactory.cs # Factory for creating ILGPU services
-├── Properties/
-│   └── launchSettings.json        # Launch profiles
-├── wwwroot/
-│   └── index.html                 # Frontend interface with canvas visualization
-├── Program.cs                    # Application entry point with dependency injection
-├── WebAPICoreMandlebrot.csproj   # Project file with ILGPU packages
-├── appsettings.json              # Application settings
-├── .gitignore                    # Git ignore file for .NET projects
-└── README.md                     # This file
+WebAPICoreMandelbrotSolution/          # Root solution directory
+├── WebApiCoreMandelbrot.sln           # Main solution file
+├── global.json                        # SDK version configuration
+├── .vscode/                           # VS Code configuration (root level)
+│   ├── launch.json                    # Debug configuration
+│   ├── tasks.json                     # Build tasks
+│   └── settings.json                  # (optional) Workspace settings
+├── WebAPICoreMandlebrot/              # Main API project
+│   ├── Controllers/
+│   │   └── MandelbrotController.cs    # Mandelbrot generation endpoints
+│   ├── Services/
+│   │   ├── IILGPUAcceleratorService.cs        # CUDA service interface
+│   │   ├── ILGPUAcceleratorService.cs         # CUDA service implementation
+│   │   └── ILGPUAcceleratorFactory.cs         # ILGPU factory
+│   ├── Constants/
+│   │   └── SharedConstants.cs         # Shared constants with TypeScript export
+│   ├── Properties/
+│   │   └── launchSettings.json        # Launch profiles
+│   ├── Build/                         # Build automation
+│   │   ├── generate-constants.ts      # Constants generation script
+│   │   └── tsconfig.json              # Build TypeScript config
+│   ├── src/                           # TypeScript source files
+│   │   ├── app.ts                     # Main visualization application
+│   │   ├── types.ts                   # TypeScript type definitions
+│   │   └── shared-constants.ts        # Auto-generated from C#
+│   ├── tests/                         # TypeScript/Jest tests
+│   │   ├── setup.ts                   # Test setup configuration
+│   │   ├── shared-constants.test.ts   # Constants validation tests
+│   │   └── utilities.test.ts          # Utility function tests
+│   ├── wwwroot/                       # Static web assets
+│   │   ├── index.html                 # Interactive frontend
+│   │   ├── styles.css                 # Application styling
+│   │   └── js/                        # Compiled TypeScript output (generated)
+│   │       ├── app.js                 # Compiled main application
+│   │       ├── app.d.ts               # Type declarations
+│   │       └── *.js.map               # Source maps
+│   ├── Program.cs                     # Application entry point
+│   ├── WebAPICoreMandlebrot.csproj    # Main project file with ILGPU
+│   ├── package.json                   # NPM dependencies and scripts
+│   ├── tsconfig.json                  # TypeScript configuration
+│   ├── jest.config.js                 # Jest testing configuration
+│   ├── .eslintrc.json                 # ESLint configuration
+│   ├── .prettierrc                    # Prettier formatting
+│   ├── appsettings.json               # Application configuration
+│   ├── appsettings.Development.json   # Development settings
+│   └── README.md                      # This documentation
+├── WebAPICoreMandlebrot.Contracts/    # Shared response contracts
+│   ├── Responses/
+│   │   ├── MandelbrotResponse.cs      # API response models
+│   │   └── DeviceInfoResponse.cs      # Device info response
+│   └── WebAPICoreMandlebrot.Contracts.csproj
+└── WebAPICoreMandlebrot.Tests/        # .NET unit tests
+    ├── MandelbrotControllerTests.cs   # Controller test suite
+    └── WebAPICoreMandlebrot.Tests.csproj
 ```
 
 ## Device Compatibility

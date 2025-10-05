@@ -3,8 +3,6 @@
 export interface MandelbrotResponse {
     success: boolean;
     error?: string;
-    width: number;
-    height: number;
     maxIterations: number;
     data?: number[];
     computeTimeMs?: number;

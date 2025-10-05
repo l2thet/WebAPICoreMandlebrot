@@ -1,4 +1,4 @@
-import { MandelbrotResponse, DeviceResponse, ToastType } from './types.js';
+import { MandelbrotResponse, ToastType } from './types.js';
 import {
     DefaultCenterReal,
     DefaultCenterImaginary,
@@ -47,8 +47,8 @@ class MandelbrotVisualization {
         this.createTooltip();
         this.createLoadingUI();
         this.setupEventListeners();
-        this.checkDeviceInfo();
-        this.generateMandelbrot(); // Auto-generate on page load
+        // Don't call checkDeviceInfo() and generateMandelbrot() here -
+        // they're called in initialize() method
     }
 
     private initializeElements(): void {
@@ -134,13 +134,21 @@ class MandelbrotVisualization {
     private async checkDeviceInfo(): Promise<void> {
         try {
             const response = await fetch('/api/mandelbrot/device');
-            const data: DeviceResponse = await response.json();
+            const data = (await response.json()) as {
+                hasCudaDevice: boolean;
+                name?: string;
+                acceleratorType?: string;
+                error?: string;
+            };
 
-            if (data.hasCudaDevice && data.currentDevice) {
-                this.deviceInfoElement.textContent = `${data.currentDevice.name} (${data.currentDevice.acceleratorType})`;
+            if (data.hasCudaDevice && data.name && data.acceleratorType) {
+                this.deviceInfoElement.textContent = `${data.name} (${data.acceleratorType})`;
             } else {
                 this.deviceInfoElement.textContent = 'CUDA Not Available';
-                this.showToast(data.error || 'CUDA device not detected', 'error');
+                // Only show error toast if there's an actual error, not just missing CUDA
+                if (data.error) {
+                    this.showToast(data.error, 'error');
+                }
             }
         } catch (error) {
             this.deviceInfoElement.textContent = 'Connection Error';
@@ -332,7 +340,7 @@ class MandelbrotVisualization {
 
             // Make API call - let backend calculate iterations based on zoom
             const response = await fetch(
-                `/api/mandelbrot/generate?width=${this.width}&height=${this.height}&centerReal=${this.centerReal}&centerImaginary=${this.centerImaginary}&zoom=${this.zoom}`
+                `/api/mandelbrot/generate?centerReal=${this.centerReal}&centerImaginary=${this.centerImaginary}&zoom=${this.zoom}`
             );
 
             if (!response.ok) {
@@ -392,6 +400,11 @@ class MandelbrotVisualization {
             const endTime = performance.now();
             const totalTime = Math.round(endTime - startTime);
 
+            // Update device info from successful generation response
+            if (data.acceleratorName && data.acceleratorType) {
+                this.deviceInfoElement.textContent = `${data.acceleratorName} (${data.acceleratorType})`;
+            }
+
             // Update UI with results - convert milliseconds to seconds
             const renderTimeMs = data.computeTimeMs || totalTime;
             const renderTimeSeconds = (renderTimeMs / 1000).toFixed(3);
@@ -441,6 +454,9 @@ class MandelbrotVisualization {
     }
 
     private renderErrorCanvas(): void {
+        // Clear the stored iteration data since generation failed
+        this.currentIterationData = null;
+
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         this.ctx.fillStyle = '#f0f0f0';
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
