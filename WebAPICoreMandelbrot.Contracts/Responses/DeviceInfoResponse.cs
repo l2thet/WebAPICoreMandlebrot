@@ -1,4 +1,4 @@
-namespace WebAPICoreMandlebrot.Contracts.Responses;
+namespace WebAPICoreMandelbrot.Contracts.Responses;
 
 public class DeviceInfoResponse
 {

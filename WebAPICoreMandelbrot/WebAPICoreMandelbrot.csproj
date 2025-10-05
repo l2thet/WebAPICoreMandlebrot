@@ -15,8 +15,16 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\WebAPICoreMandlebrot.Contracts\WebAPICoreMandlebrot.Contracts.csproj" />
+    <ProjectReference Include="..\WebAPICoreMandelbrot.Contracts\WebAPICoreMandelbrot.Contracts.csproj" />
   </ItemGroup>
+
+  <!-- Generate TypeScript interfaces from C# response classes -->
+  <Target Name="GenerateTypeScriptInterfaces" BeforeTargets="Build">
+    <Message Text="🔧 Generating TypeScript interfaces from C# response classes..." Importance="high" />
+    <Exec Command="dotnet run --project &quot;$(MSBuildProjectDirectory)\..\WebAPICoreMandelbrot.TypeScriptGenerator\WebAPICoreMandelbrot.TypeScriptGenerator.csproj&quot; -- &quot;$(MSBuildProjectDirectory)\src\response-interfaces.ts&quot;" 
+          ContinueOnError="false" />
+    <Message Text="✅ TypeScript interfaces generated successfully!" Importance="high" />
+  </Target>
 
   <!-- Check if Node.js is available and run constants generation -->
   <Target Name="CheckNodeJs" BeforeTargets="Build">

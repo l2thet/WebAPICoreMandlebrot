@@ -1,11 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
 using ILGPU;
 using ILGPU.Runtime;
-using WebAPICoreMandlebrot.Services;
-using WebAPICoreMandlebrot.Constants;
-using WebAPICoreMandlebrot.Contracts.Responses;
+using WebAPICoreMandelbrot.Services;
+using WebAPICoreMandelbrot.Constants;
+using WebAPICoreMandelbrot.Contracts.Responses;
 
-namespace WebAPICoreMandlebrot.Controllers;
+namespace WebAPICoreMandelbrot.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]

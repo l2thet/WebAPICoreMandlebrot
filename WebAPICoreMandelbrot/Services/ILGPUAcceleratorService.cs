@@ -1,6 +1,6 @@
 using ILGPU.Runtime;
 
-namespace WebAPICoreMandlebrot.Services;
+namespace WebAPICoreMandelbrot.Services;
 
 /// <summary>
 /// Service that provides access to ILGPU CUDA accelerator and error information

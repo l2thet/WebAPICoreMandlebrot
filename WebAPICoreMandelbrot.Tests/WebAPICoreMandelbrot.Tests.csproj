@@ -29,8 +29,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\WebAPICoreMandlebrot\WebAPICoreMandlebrot.csproj" />
-    <ProjectReference Include="..\WebAPICoreMandlebrot.Contracts\WebAPICoreMandlebrot.Contracts.csproj" />
+    <ProjectReference Include="..\WebAPICoreMandelbrot\WebAPICoreMandelbrot.csproj" />
+    <ProjectReference Include="..\WebAPICoreMandelbrot.Contracts\WebAPICoreMandelbrot.Contracts.csproj" />
   </ItemGroup>
 
 </Project>

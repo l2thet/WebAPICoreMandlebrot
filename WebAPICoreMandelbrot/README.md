@@ -1,6 +1,6 @@
 # WebAPI Core Mandelbrot
 
-A .NET 8 Web API solution with ILGPU CUDA acceleration for real-time Mandelbrot set visualization with interactive web interface. This multi-project solution includes the main API, shared contracts, and comprehensive unit tests.
+A .NET 8 Web API solution with ILGPU CUDA acceleration for real-time Mandelbrot set visualization with interactive web interface. This multi-project solution includes automatic TypeScript interface generation, shared constants synchronization, and clean architectural separation.
 
 ## Features
 
@@ -9,9 +9,10 @@ A .NET 8 Web API solution with ILGPU CUDA acceleration for real-time Mandelbrot 
 - **Optimized Canvas Resolution**: Fixed 1024×768 dimensions for consistent visualization quality and ~10x performance boost
 - **Interactive Interface**: Click to zoom, right-click to reset with synchronized legend updates
 - **Backend-Controlled Zoom Logic**: All zoom calculations and validation performed server-side
-- **Multi-Project Architecture**: Clean separation with Contracts project for shared models and dedicated test project
+- **Multi-Project Architecture**: Clean separation with Contracts project for shared models and TypeScript generator project
+- **Automatic TypeScript Generation**: C# response classes automatically converted to TypeScript interfaces using reflection
 - **VS Code Integration**: Comprehensive build tasks and workspace configuration
-- **Automated Build Workflows**: npm scripts for complete clean-build-test automation
+- **Automated Build Workflows**: npm scripts for complete clean-build automation
 - **SharedConstants System**: Auto-synced constants between C# and TypeScript with MSBuild integration
 - **TypeScript Frontend**: Modern ES2020 modules with optimized coordinate synchronization
 
@@ -133,10 +134,7 @@ dotnet restore
 # From the main project directory
 cd WebAPICoreMandlebrot
 
-# Complete clean-build-test workflow
-npm run test:full
-
-# Or just build everything
+# Complete clean-build workflow
 npm run build:full
 
 # Then start the server (from solution root or project directory)
@@ -211,6 +209,76 @@ npm run build
 
 > **Note**: The `src/shared-constants.ts` file is auto-generated. Never edit it manually.
 
+## Automatic TypeScript Interface Generation
+
+This project features **automatic TypeScript interface generation** from C# response classes using reflection and MSBuild integration. This ensures type safety between backend and frontend without manual synchronization.
+
+### How It Works:
+1. **C# Response Classes**: Define API response models in `WebAPICoreMandelbrot.Contracts/Responses/`
+2. **Reflection-Based Generator**: The `WebAPICoreMandelbrot.TypeScriptGenerator` project uses `System.Reflection` to analyze C# classes
+3. **MSBuild Integration**: TypeScript interfaces are automatically generated during every build
+4. **Type-Safe Frontend**: Import and use strongly-typed interfaces in your TypeScript code
+
+### Generated Interfaces:
+```typescript
+// auto-generated src/response-interfaces.ts
+export interface MandelbrotResponse {
+    acceleratorName?: string;
+    acceleratorType?: string;
+    centerImaginary: number;
+    centerReal: number;
+    computeTimeMs?: number;
+    data?: number[];
+    error?: string;
+    maxIterations: number;
+    success: boolean;
+    viewMaxImaginary: number;
+    viewMaxReal: number;
+    viewMinImaginary: number;
+    viewMinReal: number;
+    zoom: number;
+}
+
+export interface DeviceInfoResponse {
+    acceleratorType?: string;
+    error?: string;
+    hasCudaDevice: boolean;
+    maxGroupSize?: string;
+    maxNumThreads: number;
+    name?: string;
+    numMultiprocessors: number;
+    statusMessage?: string;
+    warpSize: number;
+}
+```
+
+### Usage in TypeScript:
+```typescript
+import { MandelbrotResponse, DeviceInfoResponse } from './response-interfaces.js';
+import { apiGet } from './api-client.js';
+
+// Type-safe API calls
+const mandelbrot = await apiGet<MandelbrotResponse>('/api/mandelbrot/generate');
+const deviceInfo = await apiGet<DeviceInfoResponse>('/api/mandelbrot/device-info');
+```
+
+### Manual Generation:
+```bash
+# Generate interfaces manually (happens automatically during build)
+dotnet build
+
+# Or build the TypeScript generator project specifically
+dotnet build WebAPICoreMandelbrot.TypeScriptGenerator
+```
+
+### Adding New Response Classes:
+1. Create a new response class in `WebAPICoreMandelbrot.Contracts/Responses/`
+2. Add it to the generator in `TypeScriptGenerator.cs` (in `GenerateTypeScriptInterfaces()` method)
+3. Run `dotnet build` - TypeScript interface will be generated automatically
+4. Import and use the new interface in your TypeScript code
+
+> **Note**: The `src/response-interfaces.ts` file is auto-generated. Never edit it manually.
+
 ## TypeScript Development Setup
 
 ### 1. Install Node.js Dependencies
@@ -260,19 +328,20 @@ wwwroot/js/            # Compiled JavaScript output (generated)
 ### Automated Build Workflows
 ```bash
 # Complete workflows
-npm run test:full      # Clean → Restore → Build → Test  
 npm run build:full     # Clean → Restore → Build TypeScript + .NET
 
 # Individual steps
 npm run dotnet:clean   # Clean .NET solution
 npm run dotnet:build   # Build .NET project
-npm run dotnet:test    # Run unit tests
+npm run dotnet:test    # Run .NET unit tests
+npm run build          # Build TypeScript with linting
+npm run lint:fix       # Fix TypeScript formatting issues
 ```
 
 ### MSBuild Integration
 ```bash
-# Custom MSBuild target for complete workflow
-dotnet msbuild WebAPICoreMandlebrot.csproj -t:FullTest
+# MSBuild automatically generates TypeScript interfaces during build
+dotnet build  # Triggers TypeScript generation + constants + compilation
 ```
 
 ## API Endpoints
@@ -411,12 +480,10 @@ WebAPICoreMandelbrotSolution/          # 🏠 Solution Root & Git Repository
 │   │   └── tsconfig.json              # Build TypeScript config
 │   ├── src/                           # 📝 TypeScript source files
 │   │   ├── app.ts                     # Main visualization application
+│   │   ├── api-client.ts              # Type-safe API client
 │   │   ├── types.ts                   # TypeScript type definitions
-│   │   └── shared-constants.ts        # Auto-generated from C# constants
-│   ├── tests/                         # 🧪 TypeScript/Jest tests
-│   │   ├── setup.ts                   # Test setup configuration
-│   │   ├── shared-constants.test.ts   # Constants validation tests
-│   │   └── utilities.test.ts          # Utility function tests
+│   │   ├── shared-constants.ts        # Auto-generated from C# constants
+│   │   └── response-interfaces.ts     # Auto-generated from C# response classes
 │   ├── wwwroot/                       # 🌐 Static web assets
 │   │   ├── index.html                 # Interactive frontend
 │   │   ├── styles.css                 # Application styling
@@ -429,19 +496,22 @@ WebAPICoreMandelbrotSolution/          # 🏠 Solution Root & Git Repository
 │   ├── WebAPICoreMandlebrot.csproj    # Project file with ILGPU references
 │   ├── package.json                   # 📦 NPM dependencies and scripts
 │   ├── tsconfig.json                  # TypeScript compilation config
-│   ├── jest.config.js                 # Jest testing configuration
 │   ├── .eslintrc.json                 # ESLint linting rules
 │   ├── .prettierrc                    # Code formatting rules
 │   ├── .gitignore                     # Project-specific ignore patterns
 │   ├── appsettings.json               # Application configuration
 │   ├── appsettings.Development.json   # Development environment settings
 │   └── README.md                      # 📖 This comprehensive documentation
-├── WebAPICoreMandlebrot.Contracts/    # Shared response contracts
+├── WebAPICoreMandlebrot.Contracts/    # 📄 Shared response contracts
 │   ├── Responses/
 │   │   ├── MandelbrotResponse.cs      # API response models
 │   │   └── DeviceInfoResponse.cs      # Device info response
 │   └── WebAPICoreMandlebrot.Contracts.csproj
-└── WebAPICoreMandlebrot.Tests/        # .NET unit tests
+├── WebAPICoreMandlebrot.TypeScriptGenerator/  # 🔧 TypeScript interface generator
+│   ├── TypeScriptGenerator.cs        # C# reflection-based generator
+│   ├── Program.cs                     # Console application entry point
+│   └── WebAPICoreMandlebrot.TypeScriptGenerator.csproj
+└── WebAPICoreMandlebrot.Tests/        # 🧪 .NET unit tests
     ├── MandelbrotControllerTests.cs   # Controller test suite
     └── WebAPICoreMandlebrot.Tests.csproj
 ```
@@ -488,7 +558,7 @@ $PSDefaultParameterValues['Invoke-WebRequest:SkipCertificateCheck'] = $true
 4. **Interact with visualization**: Click to zoom, right-click to reset
 5. **Monitor performance**: Check GPU compute times and device status
 6. **Test API directly**: Use Swagger UI at `https://localhost:7000/swagger`
-7. **Run tests**: Use `npm run test:full` from WebAPICoreMandlebrot directory
+7. **Build frontend**: Use `npm run build` from WebAPICoreMandlebrot directory
 
 ## Canvas Integration Tips
 
@@ -527,12 +597,13 @@ code .                                # Open in VS Code workspace
 # From WebAPICoreMandlebrot/ directory  
 npm install                           # Install frontend dependencies
 npm run build:full                    # Build TypeScript + .NET
-npm run test:full                     # Full test workflow
+npm run build                         # Build TypeScript with linting
 ```
 
 ### 📁 Multi-Project Benefits
 - **Clean Architecture**: Shared contracts in separate project
-- **Testing**: Dedicated test project with comprehensive coverage
+- **Automatic Generation**: TypeScript interfaces and constants auto-generated from C#
+- **Type Safety**: Full type safety between frontend and backend with zero manual sync
 - **VS Code Integration**: Root-level workspace and build tasks
 - **Git Tracking**: Entire solution managed as single repository
 

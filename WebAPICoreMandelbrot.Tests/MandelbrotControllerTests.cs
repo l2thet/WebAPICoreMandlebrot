@@ -1,14 +1,14 @@
 using Xunit;
 using Moq;
 using Microsoft.AspNetCore.Mvc;
-using WebAPICoreMandlebrot.Controllers;
-using WebAPICoreMandlebrot.Services;
-using WebAPICoreMandlebrot.Constants;
-using WebAPICoreMandlebrot.Contracts.Responses;
+using WebAPICoreMandelbrot.Controllers;
+using WebAPICoreMandelbrot.Services;
+using WebAPICoreMandelbrot.Constants;
+using WebAPICoreMandelbrot.Contracts.Responses;
 using ILGPU;
 using ILGPU.Runtime;
 
-namespace WebAPICoreMandlebrot.Tests;
+namespace WebAPICoreMandelbrot.Tests;
 
 public class MandelbrotControllerTests
 {

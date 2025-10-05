@@ -1,6 +1,6 @@
 using System;
 
-namespace WebAPICoreMandlebrot.Constants;
+namespace WebAPICoreMandelbrot.Constants;
 
 /// <summary>
 /// Attribute to mark constants that should be exported to TypeScript

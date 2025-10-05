@@ -287,8 +287,9 @@ wwwroot/app.js.map
 wwwroot/*.d.ts
 wwwroot/*.d.ts.map
 
-# Auto-generated TypeScript constants file
+# Auto-generated TypeScript files
 src/shared-constants.ts
+src/response-interfaces.ts
 
 # Jest test coverage output
 coverage/
