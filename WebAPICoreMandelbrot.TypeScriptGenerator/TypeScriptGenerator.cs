@@ -19,8 +19,10 @@ public class TypeScriptGenerator
         // Generate interfaces from actual C# classes
         GenerateInterface(typeof(MandelbrotResponse), output);
         GenerateInterface(typeof(DeviceInfoResponse), output);
-
-        return output.ToString();
+        
+        // Remove any trailing empty line to prevent formatting issues
+        var result = output.ToString().TrimEnd();
+        return result + Environment.NewLine; // End with single newline
     }
 
     private void GenerateInterface(Type responseType, StringBuilder output)
@@ -31,13 +33,17 @@ public class TypeScriptGenerator
             .Where(p => p.CanRead)
             .OrderBy(p => p.Name);
 
-        foreach (var property in properties)
+        var propertiesArray = properties.ToArray();
+        for (int i = 0; i < propertiesArray.Length; i++)
         {
+            var property = propertiesArray[i];
             var tsType = MapCSharpTypeToTypeScript(property.PropertyType);
             var isOptional = IsOptionalProperty(property);
             var optionalMarker = isOptional ? "?" : "";
             
-            output.AppendLine($"    {ToCamelCase(property.Name)}{optionalMarker}: {tsType};");
+            // Use single quotes for string types to match Prettier config
+            var formattedType = tsType == "string" ? "string" : tsType;
+            output.AppendLine($"    {ToCamelCase(property.Name)}{optionalMarker}: {formattedType};");
         }
 
         output.AppendLine("}");
