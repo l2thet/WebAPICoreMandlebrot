@@ -1,4 +1,5 @@
-import { MandelbrotResponse, ToastType } from './types.js';
+import { ToastType } from './types.js';
+import { MandelbrotResponse } from './response-interfaces.js';
 import {
     DefaultCenterReal,
     DefaultCenterImaginary,

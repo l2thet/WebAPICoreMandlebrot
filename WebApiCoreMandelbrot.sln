@@ -3,11 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebAPICoreMandlebrot", "WebAPICoreMandlebrot\WebAPICoreMandlebrot.csproj", "{20C03CA4-FB39-4902-BFD7-1F570E845036}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebAPICoreMandelbrot", "WebAPICoreMandelbrot\WebAPICoreMandelbrot.csproj", "{20C03CA4-FB39-4902-BFD7-1F570E845036}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebAPICoreMandlebrot.Contracts", "WebAPICoreMandlebrot.Contracts\WebAPICoreMandlebrot.Contracts.csproj", "{AC840167-EE1D-4B54-8FB9-6413BB5284E4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebAPICoreMandelbrot.Contracts", "WebAPICoreMandelbrot.Contracts\WebAPICoreMandelbrot.Contracts.csproj", "{AC840167-EE1D-4B54-8FB9-6413BB5284E4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebAPICoreMandlebrot.Tests", "WebAPICoreMandlebrot.Tests\WebAPICoreMandlebrot.Tests.csproj", "{B23E3399-14C0-4F38-9D1F-A438731343AD}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebAPICoreMandelbrot.Tests", "WebAPICoreMandelbrot.Tests\WebAPICoreMandelbrot.Tests.csproj", "{B23E3399-14C0-4F38-9D1F-A438731343AD}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebAPICoreMandelbrot.TypeScriptGenerator", "WebAPICoreMandelbrot.TypeScriptGenerator\WebAPICoreMandelbrot.TypeScriptGenerator.csproj", "{6B0327DE-09B1-46C7-8F2C-FBAD01E94145}"
 EndProject

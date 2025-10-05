@@ -6,9 +6,9 @@
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build and test",
-            "program": "${workspaceFolder}/WebAPICoreMandlebrot/bin/Debug/net8.0/WebAPICoreMandelbrot.dll",
+            "program": "${workspaceFolder}/WebAPICoreMandelbrot/bin/Debug/net8.0/WebAPICoreMandelbrot.dll",
             "args": [],
-            "cwd": "${workspaceFolder}/WebAPICoreMandlebrot",
+            "cwd": "${workspaceFolder}/WebAPICoreMandelbrot",
             "serverReadyAction": {
                 "action": "openExternally",
                 "pattern": "\\bNow listening on:\\s+(https?://\\S+)",

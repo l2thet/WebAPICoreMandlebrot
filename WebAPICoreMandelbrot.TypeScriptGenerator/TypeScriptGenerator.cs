@@ -37,7 +37,7 @@ public class TypeScriptGenerator
             var isOptional = IsOptionalProperty(property);
             var optionalMarker = isOptional ? "?" : "";
             
-            output.AppendLine($"  {ToCamelCase(property.Name)}{optionalMarker}: {tsType};");
+            output.AppendLine($"    {ToCamelCase(property.Name)}{optionalMarker}: {tsType};");
         }
 
         output.AppendLine("}");

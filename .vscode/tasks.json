@@ -7,7 +7,7 @@
             "type": "process",
             "args": [
                 "build",
-                "${workspaceFolder}/WebAPICoreMandlebrot/WebAPICoreMandelbrot.csproj",
+                "${workspaceFolder}/WebAPICoreMandelbrot/WebAPICoreMandelbrot.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
@@ -33,7 +33,7 @@
                 "watch",
                 "run",
                 "--project",
-                "${workspaceFolder}/WebAPICoreMandlebrot/WebAPICoreMandelbrot.csproj"
+                "${workspaceFolder}/WebAPICoreMandelbrot/WebAPICoreMandelbrot.csproj"
             ],
             "problemMatcher": "$msCompile"
         },
@@ -41,7 +41,7 @@
             "label": "build TypeScript",
             "type": "shell",
             "options": {
-                "cwd": "${workspaceFolder}/WebAPICoreMandlebrot"
+                "cwd": "${workspaceFolder}/WebAPICoreMandelbrot"
             },
             "windows": {
                 "command": "powershell",

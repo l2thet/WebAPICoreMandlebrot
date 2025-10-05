@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\WebAPICoreMandlebrot.Contracts\WebAPICoreMandlebrot.Contracts.csproj" />
+    <ProjectReference Include="..\WebAPICoreMandelbrot.Contracts\WebAPICoreMandelbrot.Contracts.csproj" />
   </ItemGroup>
 
 </Project>
