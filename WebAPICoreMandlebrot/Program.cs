@@ -1,5 +1,5 @@
 using ILGPU;
-using WebAPICoreMandlebrot.Services;
+using WebAPICoreMandelbrot.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 

@@ -1,7 +1,7 @@
 using ILGPU;
 using ILGPU.Runtime;
 
-namespace WebAPICoreMandlebrot.Services;
+namespace WebAPICoreMandelbrot.Services;
 
 /// <summary>
 /// Factory interface for creating ILGPU accelerator services

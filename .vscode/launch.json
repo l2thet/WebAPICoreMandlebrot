@@ -6,7 +6,7 @@
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build and test",
-            "program": "${workspaceFolder}/WebAPICoreMandlebrot/bin/Debug/net8.0/WebAPICoreMandlebrot.dll",
+            "program": "${workspaceFolder}/WebAPICoreMandlebrot/bin/Debug/net8.0/WebAPICoreMandelbrot.dll",
             "args": [],
             "cwd": "${workspaceFolder}/WebAPICoreMandlebrot",
             "serverReadyAction": {
