@@ -402,6 +402,7 @@ WebAPICoreMandelbrotSolution/          # Root solution directory
 │   ├── .prettierrc                    # Prettier formatting
 │   ├── appsettings.json               # Application configuration
 │   ├── appsettings.Development.json   # Development settings
+│   ├── .gitignore                     # Git ignore patterns (includes ../TestResults/)
 │   └── README.md                      # This documentation
 ├── WebAPICoreMandlebrot.Contracts/    # Shared response contracts
 │   ├── Responses/
