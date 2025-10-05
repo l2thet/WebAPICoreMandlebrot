@@ -1,0 +1,181 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "build",
+                "${workspaceFolder}/WebAPICoreMandlebrot/WebAPICoreMandlebrot.csproj",
+                "/property:GenerateFullPaths=true",
+                "/consoleloggerparameters:NoSummary"
+            ],
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "publish",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "publish",
+                "${workspaceFolder}/WebAPICoreMandlebrot/WebAPICoreMandlebrot.csproj",
+                "/property:GenerateFullPaths=true",
+                "/consoleloggerparameters:NoSummary"
+            ],
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "watch",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "watch",
+                "run",
+                "--project",
+                "${workspaceFolder}/WebAPICoreMandlebrot/WebAPICoreMandlebrot.csproj"
+            ],
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "build TypeScript",
+            "type": "shell",
+            "options": {
+                "cwd": "${workspaceFolder}/WebAPICoreMandlebrot"
+            },
+            "windows": {
+                "command": "powershell",
+                "args": [
+                    "-c",
+                    "if (Get-Command npm -ErrorAction SilentlyContinue) { npm run build } elseif (Get-Command tsc -ErrorAction SilentlyContinue) { tsc } else { Write-Host 'Error: Neither npm nor tsc found. Please install Node.js or TypeScript globally.' -ForegroundColor Red; exit 1 }"
+                ]
+            },
+            "linux": {
+                "command": "bash",
+                "args": [
+                    "-c",
+                    "if command -v npm >/dev/null 2>&1; then npm run build; elif command -v tsc >/dev/null 2>&1; then tsc; else echo 'Error: Neither npm nor tsc found. Please install Node.js or TypeScript globally.'; exit 1; fi"
+                ]
+            },
+            "osx": {
+                "command": "bash",
+                "args": [
+                    "-c",
+                    "if command -v npm >/dev/null 2>&1; then npm run build; elif command -v tsc >/dev/null 2>&1; then tsc; else echo 'Error: Neither npm nor tsc found. Please install Node.js or TypeScript globally.'; exit 1; fi"
+                ]
+            },
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "silent",
+                "focus": false,
+                "panel": "shared"
+            },
+            "problemMatcher": "$tsc"
+        },
+        {
+            "label": "watch TypeScript",
+            "type": "shell",
+            "options": {
+                "cwd": "${workspaceFolder}/WebAPICoreMandlebrot"
+            },
+            "windows": {
+                "command": "powershell",
+                "args": [
+                    "-c",
+                    "if (Get-Command npm -ErrorAction SilentlyContinue) { npm run watch } elseif (Get-Command tsc -ErrorAction SilentlyContinue) { tsc --watch } else { Write-Host 'Error: Neither npm nor tsc found. Please install Node.js or TypeScript globally.' -ForegroundColor Red; exit 1 }"
+                ]
+            },
+            "linux": {
+                "command": "bash",
+                "args": [
+                    "-c",
+                    "if command -v npm >/dev/null 2>&1; then npm run watch; elif command -v tsc >/dev/null 2>&1; then tsc --watch; else echo 'Error: Neither npm nor tsc found. Please install Node.js or TypeScript globally.'; exit 1; fi"
+                ]
+            },
+            "osx": {
+                "command": "bash",
+                "args": [
+                    "-c",
+                    "if command -v npm >/dev/null 2>&1; then npm run watch; elif command -v tsc >/dev/null 2>&1; then tsc --watch; else echo 'Error: Neither npm nor tsc found. Please install Node.js or TypeScript globally.'; exit 1; fi"
+                ]
+            },
+            "group": "build",
+            "isBackground": true,
+            "presentation": {
+                "echo": true,
+                "reveal": "silent",
+                "focus": false,
+                "panel": "shared"
+            },
+            "problemMatcher": "$tsc-watch"
+        },
+        {
+            "label": "test",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "test",
+                "${workspaceFolder}/WebApiCoreMandelbrot.sln",
+                "--verbosity",
+                "normal"
+            ],
+            "problemMatcher": "$msCompile",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "test with coverage",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "test",
+                "${workspaceFolder}/WebApiCoreMandelbrot.sln",
+                "--collect:XPlat Code Coverage",
+                "--results-directory:TestResults",
+                "--verbosity",
+                "normal"
+            ],
+            "problemMatcher": "$msCompile",
+            "group": "test",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "build with TypeScript",
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "build TypeScript",
+                "build"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "echo": true,
+                "reveal": "silent",
+                "focus": false,
+                "panel": "shared"
+            },
+            "problemMatcher": ["$tsc", "$msCompile"]
+        },
+        {
+            "label": "build and test",
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "build with TypeScript",
+                "test"
+            ],
+            "group": "build"
+        }
+    ]
+}

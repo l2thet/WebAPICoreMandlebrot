@@ -39,9 +39,9 @@ bld/
 [Tt]est[Rr]esult*/
 [Bb]uild[Ll]og.*
 
-# Test Results - All levels
+# Test Results - Local and parent directory (solution level)
 TestResults/
-**/TestResults/
+../TestResults/
 
 # NUnit
 *.VisualState.xml
@@ -281,23 +281,22 @@ FakesAssemblies/
 node_modules/
 
 # TypeScript build artifacts - exclude transpiled JS files and maps
-**/wwwroot/js/
-**/wwwroot/app.js
-**/wwwroot/app.js.map
-**/wwwroot/*.d.ts
-**/wwwroot/*.d.ts.map
+wwwroot/js/
+wwwroot/app.js
+wwwroot/app.js.map
+wwwroot/*.d.ts
+wwwroot/*.d.ts.map
 
 # Auto-generated TypeScript constants file
-**/src/shared-constants.ts
+src/shared-constants.ts
 
 # Jest test coverage output
 coverage/
-**/coverage/
 *.lcov
 
 # .NET Test Results and Coverage
 TestResults/
-**/TestResults/
+../TestResults/
 coverage.xml
 coverage.cobertura.xml
 *.coverage
@@ -427,9 +426,9 @@ FodyWeavers.xsd
 # JetBrains Rider
 *.sln.iml
 
-# Package lock files for reproducible builds (uncomment if you want to ignore them)
-# package-lock.json
-# yarn.lock
+# Package lock files for reproducible builds
+package-lock.json
+yarn.lock
 
 # OS generated files
 .DS_Store

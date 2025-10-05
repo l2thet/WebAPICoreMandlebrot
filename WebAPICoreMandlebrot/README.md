@@ -1,6 +1,6 @@
 # WebAPI Core Mandelbrot
 
-A .NET 8 Web API project with ILGPU CUDA acceleration for real-time Mandelbrot set visualization with interactive web interface.
+A .NET 8 Web API solution with ILGPU CUDA acceleration for real-time Mandelbrot set visualization with interactive web interface. This multi-project solution includes the main API, shared contracts, and comprehensive unit tests.
 
 ## Features
 
@@ -9,6 +9,8 @@ A .NET 8 Web API project with ILGPU CUDA acceleration for real-time Mandelbrot s
 - **Optimized Canvas Resolution**: Fixed 1024×768 dimensions for consistent visualization quality and ~10x performance boost
 - **Interactive Interface**: Click to zoom, right-click to reset with synchronized legend updates
 - **Backend-Controlled Zoom Logic**: All zoom calculations and validation performed server-side
+- **Multi-Project Architecture**: Clean separation with Contracts project for shared models and dedicated test project
+- **VS Code Integration**: Comprehensive build tasks and workspace configuration
 - **Automated Build Workflows**: npm scripts for complete clean-build-test automation
 - **SharedConstants System**: Auto-synced constants between C# and TypeScript with MSBuild integration
 - **TypeScript Frontend**: Modern ES2020 modules with optimized coordinate synchronization
@@ -102,44 +104,68 @@ For production deployment, replace the development certificate with a proper SSL
 
 ## Getting Started
 
+> **Important**: This solution is designed to work from the **solution root** directory. All commands should be run from `WebAPICoreMandelbrotSolution/` unless otherwise specified.
+
 ### 1. Setup HTTPS Certificate (First Time Only)
 ```bash
+# Navigate to the main project directory
+cd WebAPICoreMandlebrot
+
 # Trust the development certificate for HTTPS
 dotnet dev-certs https --trust
 ```
 
 ### 2. Install Frontend Dependencies
 ```bash
+# From the main project directory
+cd WebAPICoreMandlebrot
 npm install
 ```
 
-### 3. Restore .NET Dependencies
+### 3. Restore .NET Dependencies (All Projects)
 ```bash
+# From solution root - restores all projects
 dotnet restore
 ```
 
 ### 4. Automated Workflow (Recommended)
 ```bash
+# From the main project directory
+cd WebAPICoreMandlebrot
+
 # Complete clean-build-test workflow
 npm run test:full
 
 # Or just build everything
 npm run build:full
 
-# Then start the server
-dotnet run
+# Then start the server (from solution root or project directory)
+dotnet run --project WebAPICoreMandlebrot
 ```
 
 ### 5. Manual Steps (Alternative)
 ```bash
+# From the main project directory
+cd WebAPICoreMandlebrot
+
 # Build TypeScript
 npm run build
 
-# Build the .NET Project  
+# From solution root - build all projects
+cd ..
 dotnet build
 
-# Run the Project
-dotnet run
+# Run the main project
+dotnet run --project WebAPICoreMandlebrot
+```
+
+### 6. VS Code Development
+```bash
+# Open the solution in VS Code from the root
+code .
+
+# All build tasks are available via Ctrl+Shift+P → "Tasks: Run Task"
+# Use the integrated terminal to run dotnet commands
 ```
 
 The application will be available at:
@@ -356,15 +382,20 @@ This project uses CUDA for GPU computation:
 
 ## Project Structure
 
+> **Repository Structure**: Git repository tracks from the solution root level. All projects are organized as subdirectories under the main solution.
+
 ```
-WebAPICoreMandelbrotSolution/          # Root solution directory
-├── WebApiCoreMandelbrot.sln           # Main solution file
-├── global.json                        # SDK version configuration
-├── .vscode/                           # VS Code configuration (root level)
-│   ├── launch.json                    # Debug configuration
-│   ├── tasks.json                     # Build tasks
-│   └── settings.json                  # (optional) Workspace settings
-├── WebAPICoreMandlebrot/              # Main API project
+WebAPICoreMandelbrotSolution/          # 🏠 Solution Root & Git Repository
+├── .git/                              # Git repository (tracks entire solution)
+├── .gitignore                         # Solution-level ignore patterns
+├── WebApiCoreMandelbrot.sln           # 📁 Main solution file (all projects)
+├── global.json                        # .NET SDK version configuration
+├── TestResults/                       # Solution-level test results
+├── .vscode/                           # 🔧 VS Code configuration (root level)
+│   ├── launch.json                    # Debug configuration for VS Code
+│   └── tasks.json                     # Build tasks for all projects
+│
+├── WebAPICoreMandlebrot/              # 🚀 Main API Project
 │   ├── Controllers/
 │   │   └── MandelbrotController.cs    # Mandelbrot generation endpoints
 │   ├── Services/
@@ -374,35 +405,37 @@ WebAPICoreMandelbrotSolution/          # Root solution directory
 │   ├── Constants/
 │   │   └── SharedConstants.cs         # Shared constants with TypeScript export
 │   ├── Properties/
-│   │   └── launchSettings.json        # Launch profiles
-│   ├── Build/                         # Build automation
+│   │   └── launchSettings.json        # Launch profiles (HTTPS configuration)
+│   ├── Build/                         # 🛠️ Build automation
 │   │   ├── generate-constants.ts      # Constants generation script
 │   │   └── tsconfig.json              # Build TypeScript config
-│   ├── src/                           # TypeScript source files
+│   ├── src/                           # 📝 TypeScript source files
 │   │   ├── app.ts                     # Main visualization application
 │   │   ├── types.ts                   # TypeScript type definitions
-│   │   └── shared-constants.ts        # Auto-generated from C#
-│   ├── tests/                         # TypeScript/Jest tests
+│   │   └── shared-constants.ts        # Auto-generated from C# constants
+│   ├── tests/                         # 🧪 TypeScript/Jest tests
 │   │   ├── setup.ts                   # Test setup configuration
 │   │   ├── shared-constants.test.ts   # Constants validation tests
 │   │   └── utilities.test.ts          # Utility function tests
-│   ├── wwwroot/                       # Static web assets
+│   ├── wwwroot/                       # 🌐 Static web assets
 │   │   ├── index.html                 # Interactive frontend
 │   │   ├── styles.css                 # Application styling
 │   │   └── js/                        # Compiled TypeScript output (generated)
 │   │       ├── app.js                 # Compiled main application
 │   │       ├── app.d.ts               # Type declarations
-│   │       └── *.js.map               # Source maps
+│   │       └── *.js.map               # Source maps for debugging
+│   ├── TestResults/                   # Project-level test results
 │   ├── Program.cs                     # Application entry point
-│   ├── WebAPICoreMandlebrot.csproj    # Main project file with ILGPU
-│   ├── package.json                   # NPM dependencies and scripts
-│   ├── tsconfig.json                  # TypeScript configuration
+│   ├── WebAPICoreMandlebrot.csproj    # Project file with ILGPU references
+│   ├── package.json                   # 📦 NPM dependencies and scripts
+│   ├── tsconfig.json                  # TypeScript compilation config
 │   ├── jest.config.js                 # Jest testing configuration
-│   ├── .eslintrc.json                 # ESLint configuration
-│   ├── .prettierrc                    # Prettier formatting
+│   ├── .eslintrc.json                 # ESLint linting rules
+│   ├── .prettierrc                    # Code formatting rules
+│   ├── .gitignore                     # Project-specific ignore patterns
 │   ├── appsettings.json               # Application configuration
-│   ├── appsettings.Development.json   # Development settings
-│   └── README.md                      # This documentation
+│   ├── appsettings.Development.json   # Development environment settings
+│   └── README.md                      # 📖 This comprehensive documentation
 ├── WebAPICoreMandlebrot.Contracts/    # Shared response contracts
 │   ├── Responses/
 │   │   ├── MandelbrotResponse.cs      # API response models
@@ -449,11 +482,13 @@ $PSDefaultParameterValues['Invoke-WebRequest:SkipCertificateCheck'] = $true
 
 ## Next Steps
 
-1. **Run the application**: `dotnet run`
-2. **Open the frontend**: Navigate to `https://localhost:7000`
-3. **Interact with visualization**: Click to zoom, right-click to reset
-4. **Monitor performance**: Check GPU compute times and device status
-5. **Test API directly**: Use Swagger UI at `https://localhost:7000/swagger`
+1. **Open in VS Code**: From solution root, run `code .` for workspace development
+2. **Run the application**: `dotnet run --project WebAPICoreMandlebrot` (from solution root)
+3. **Open the frontend**: Navigate to `https://localhost:7000`
+4. **Interact with visualization**: Click to zoom, right-click to reset
+5. **Monitor performance**: Check GPU compute times and device status
+6. **Test API directly**: Use Swagger UI at `https://localhost:7000/swagger`
+7. **Run tests**: Use `npm run test:full` from WebAPICoreMandlebrot directory
 
 ## Canvas Integration Tips
 
@@ -471,10 +506,41 @@ $PSDefaultParameterValues['Invoke-WebRequest:SkipCertificateCheck'] = $true
 - Additional color schemes and visualization modes
 - Export functionality for high-resolution images
 
+## Development Workflow Summary
+
+### 🏠 Working from Solution Root
+This solution is designed to work from the **solution root level** (`WebAPICoreMandelbrotSolution/`):
+
+1. **VS Code Setup**: Open VS Code from the root directory (`code .`)
+2. **Debugging**: Use VS Code's integrated terminal and debugging features
+3. **Git Repository**: All projects tracked from solution root level
+4. **Build Tasks**: Available via VS Code Command Palette (`Ctrl+Shift+P` → "Tasks: Run Task")
+
+### 🔧 Key Commands Reference
+```bash
+# From solution root
+dotnet restore                         # Restore all projects
+dotnet build                          # Build entire solution  
+dotnet run --project WebAPICoreMandlebrot  # Run main project
+code .                                # Open in VS Code workspace
+
+# From WebAPICoreMandlebrot/ directory  
+npm install                           # Install frontend dependencies
+npm run build:full                    # Build TypeScript + .NET
+npm run test:full                     # Full test workflow
+```
+
+### 📁 Multi-Project Benefits
+- **Clean Architecture**: Shared contracts in separate project
+- **Testing**: Dedicated test project with comprehensive coverage
+- **VS Code Integration**: Root-level workspace and build tasks
+- **Git Tracking**: Entire solution managed as single repository
+
 ## Notes
 
-- CUDA-only architecture for GPU computation
-- ILGPU Context and CUDA Accelerator are registered as singleton services  
-- Error handling when CUDA is unavailable (no CPU fallback)
-- All endpoints return standardized JSON responses for web consumption
-- Project focused on Mandelbrot visualization
+- **CUDA-only architecture** for GPU computation with ILGPU
+- **ILGPU Context and CUDA Accelerator** registered as singleton services  
+- **Error handling** when CUDA is unavailable (no CPU fallback)
+- **Standardized JSON responses** for all endpoints and web consumption
+- **Multi-project solution** with clean separation and shared contracts
+- **Root-level development** with VS Code workspace configuration
