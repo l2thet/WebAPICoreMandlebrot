@@ -3,32 +3,9 @@ using ILGPU;
 using ILGPU.Runtime;
 using WebAPICoreMandlebrot.Services;
 using WebAPICoreMandlebrot.Constants;
+using WebAPICoreMandlebrot.Contracts.Responses;
 
 namespace WebAPICoreMandlebrot.Controllers;
-
-public class MandelbrotResponse
-{
-    public bool Success { get; set; }
-    public string? Error { get; set; }
-    public int Width { get; set; }
-    public int Height { get; set; }
-    public int MaxIterations { get; set; }
-    public int[]? Data { get; set; }
-    public long? ComputeTimeMs { get; set; }
-    public string? AcceleratorType { get; set; }
-    public string? AcceleratorName { get; set; }
-    
-    // Coordinate mapping data from CUDA calculations
-    public double ViewMinReal { get; set; }
-    public double ViewMaxReal { get; set; }
-    public double ViewMinImaginary { get; set; }
-    public double ViewMaxImaginary { get; set; }
-    public double CenterReal { get; set; }
-    public double CenterImaginary { get; set; }
-    public double Zoom { get; set; }
-}
-
-
 
 [ApiController]
 [Route("api/[controller]")]
@@ -63,12 +40,14 @@ public class MandelbrotController : ControllerBase
 
     [HttpGet("generate")]
     public async Task<IActionResult> GenerateMandelbrot(
-        [FromQuery] int width = SharedConstants.DefaultCanvasWidth, 
-        [FromQuery] int height = SharedConstants.DefaultCanvasHeight,
         [FromQuery] double centerReal = SharedConstants.DefaultCenterReal,
         [FromQuery] double centerImaginary = SharedConstants.DefaultCenterImaginary,
         [FromQuery] double zoom = SharedConstants.DefaultZoom)
     {
+        // Use constants for canvas dimensions
+        int width = SharedConstants.DefaultCanvasWidth;
+        int height = SharedConstants.DefaultCanvasHeight;
+        
         // Validate and clamp zoom level to prevent excessive computation
         zoom = Math.Max(SharedConstants.MinZoom, Math.Min(SharedConstants.MaxZoom, zoom));
         
@@ -82,8 +61,6 @@ public class MandelbrotController : ControllerBase
             {
                 Success = false,
                 Error = _cudaError ?? "NVIDIA CUDA device not available",
-                Width = width,
-                Height = height,
                 MaxIterations = maxIterations
             });
         }
@@ -105,8 +82,6 @@ public class MandelbrotController : ControllerBase
             return Ok(new MandelbrotResponse
             {
                 Success = true,
-                Width = width,
-                Height = height,
                 MaxIterations = maxIterations,
                 Data = result,
                 ComputeTimeMs = stopwatch.ElapsedMilliseconds,
@@ -127,8 +102,6 @@ public class MandelbrotController : ControllerBase
             {
                 Success = false,
                 Error = $"GPU computation failed: {ex.Message}",
-                Width = width,
-                Height = height,
                 MaxIterations = maxIterations
             });
         }
@@ -139,36 +112,45 @@ public class MandelbrotController : ControllerBase
     [HttpGet("device")]
     public IActionResult GetDeviceInfo()
     {
-        if (!_acceleratorService.IsAvailable)
+        try
         {
-            return Ok(new {
-                Error = _acceleratorService.ErrorMessage ?? "CUDA accelerator not available",
+            if (!_acceleratorService.IsAvailable)
+            {
+                return Ok(new DeviceInfoResponse
+                {
+                    Error = _acceleratorService.ErrorMessage ?? "CUDA accelerator not available",
+                    HasCudaDevice = false,
+                    StatusMessage = _acceleratorService.GetStatusMessage()
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            return Ok(new DeviceInfoResponse
+            {
+                Error = $"Failed to check device availability: {ex.Message}",
                 HasCudaDevice = false,
-                StatusMessage = _acceleratorService.GetStatusMessage()
+                StatusMessage = "Service error occurred"
             });
         }
 
         try
         {
-            return Ok(new {
-                CurrentDevice = new {
-                    AcceleratorType = _acceleratorService.DeviceType,
-                    Name = _acceleratorService.DeviceName,
-                    MaxNumThreads = _acceleratorService.Accelerator!.MaxNumThreads,
-                    MaxGroupSize = _acceleratorService.Accelerator.MaxGroupSize.ToString(),
-                    WarpSize = _acceleratorService.Accelerator.WarpSize,
-                    NumMultiprocessors = _acceleratorService.Accelerator.NumMultiprocessors,
-                    MemorySize = _acceleratorService.Accelerator.MemorySize,
-                    MaxConstantMemory = _acceleratorService.Accelerator.MaxConstantMemory,
-                    MaxSharedMemoryPerGroup = _acceleratorService.Accelerator.MaxSharedMemoryPerGroup
-                },
+            return Ok(new DeviceInfoResponse
+            {
                 HasCudaDevice = true,
-                KernelPrecompiled = _mandelbrotKernel != null
+                AcceleratorType = _acceleratorService.DeviceType,
+                Name = _acceleratorService.DeviceName,
+                MaxNumThreads = _acceleratorService.Accelerator!.MaxNumThreads,
+                MaxGroupSize = _acceleratorService.Accelerator.MaxGroupSize.ToString(),
+                WarpSize = _acceleratorService.Accelerator.WarpSize,
+                NumMultiprocessors = _acceleratorService.Accelerator.NumMultiprocessors
             });
         }
         catch (Exception ex)
         {
-            return Ok(new { 
+            return Ok(new DeviceInfoResponse
+            { 
                 Error = $"Failed to get device info: {ex.Message}",
                 HasCudaDevice = true // We have accelerator but can't get details
             });
