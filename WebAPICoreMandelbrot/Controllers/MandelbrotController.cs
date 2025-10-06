@@ -14,7 +14,7 @@ public class MandelbrotController : ControllerBase
     private readonly IILGPUAcceleratorService _acceleratorService;
     private readonly Accelerator? _accelerator;
     private readonly string? _cudaError;
-    private readonly Action<Index1D, ArrayView<int>, int, int, int, double, double, double>? _mandelbrotKernel;
+    private readonly Action<Index1D, ArrayView<int>, int, double, double, double>? _mandelbrotKernel;
 
     public MandelbrotController(IILGPUAcceleratorService acceleratorService)
     {
@@ -28,7 +28,7 @@ public class MandelbrotController : ControllerBase
             try
             {
                 _mandelbrotKernel = _accelerator.LoadAutoGroupedStreamKernel<
-                    Index1D, ArrayView<int>, int, int, int, double, double, double>(MandelbrotKernel);
+                    Index1D, ArrayView<int>, int, double, double, double>(MandelbrotKernel);
             }
             catch (Exception ex)
             {
@@ -44,17 +44,8 @@ public class MandelbrotController : ControllerBase
         [FromQuery] double centerImaginary = SharedConstants.DefaultCenterImaginary,
         [FromQuery] double zoom = SharedConstants.DefaultZoom)
     {
-        // Use constants for canvas dimensions
-        int width = SharedConstants.DefaultCanvasWidth;
-        int height = SharedConstants.DefaultCanvasHeight;
-        
-        // Validate and clamp zoom level to prevent excessive computation
         zoom = Math.Max(SharedConstants.MinZoom, Math.Min(SharedConstants.MaxZoom, zoom));
-        
-        // Calculate dynamic iteration count based on zoom level
         int maxIterations = CalculateDynamicIterations(zoom);
-        
-        // Check if CUDA is available
         if (_accelerator == null)
         {
             return Ok(new MandelbrotResponse
@@ -64,21 +55,17 @@ public class MandelbrotController : ControllerBase
                 MaxIterations = maxIterations
             });
         }
-
         try
         {
             var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-            var result = await GenerateMandelbrotSet(width, height, centerReal, centerImaginary, zoom);
+            var result = await GenerateMandelbrotSet(centerReal, centerImaginary, zoom);
             stopwatch.Stop();
-
-            // Calculate the coordinate bounds (same as CUDA kernel)
             double viewWidth = SharedConstants.DefaultViewportWidth / zoom;
             double viewHeight = SharedConstants.DefaultViewportHeight / zoom;
             double viewMinReal = centerReal - viewWidth / 2.0;
             double viewMaxReal = centerReal + viewWidth / 2.0;
             double viewMinImag = centerImaginary - viewHeight / 2.0;
             double viewMaxImag = centerImaginary + viewHeight / 2.0;
-
             return Ok(new MandelbrotResponse
             {
                 Success = true,
@@ -106,8 +93,6 @@ public class MandelbrotController : ControllerBase
             });
         }
     }
-
-
 
     [HttpGet("device")]
     public IActionResult GetDeviceInfo()
@@ -176,75 +161,59 @@ public class MandelbrotController : ControllerBase
         return Math.Max(SharedConstants.MinIterationCount, Math.Min(SharedConstants.MaxIterationCount, scaledIterations));
     }
 
-    private async Task<int[]> GenerateMandelbrotSet(int width, int height, double centerReal = SharedConstants.DefaultCenterReal, double centerImaginary = SharedConstants.DefaultCenterImaginary, double zoom = SharedConstants.DefaultZoom)
+    private async Task<int[]> GenerateMandelbrotSet(double centerReal = SharedConstants.DefaultCenterReal, double centerImaginary = SharedConstants.DefaultCenterImaginary, double zoom = SharedConstants.DefaultZoom)
     {
         if (_accelerator == null)
         {
             throw new InvalidOperationException("CUDA accelerator not available");
         }
-
-        // Calculate dynamic iteration count based on zoom level
         int maxIterations = CalculateDynamicIterations(zoom);
-
+        int width = SharedConstants.DefaultCanvasWidth;
+        int height = SharedConstants.DefaultCanvasHeight;
         return await Task.Run(() =>
         {
-            // Create GPU buffer for results
             using var buffer = _accelerator.Allocate1D<int>(width * height);
-            
-            // Try to use pre-compiled kernel, or compile on-demand
-            Action<Index1D, ArrayView<int>, int, int, int, double, double, double> kernel;
+            Action<Index1D, ArrayView<int>, int, double, double, double> kernel;
             if (_mandelbrotKernel != null)
             {
                 kernel = _mandelbrotKernel;
             }
             else
             {
-                // Compile kernel on-demand if pre-compilation failed
-                kernel = _accelerator.LoadAutoGroupedStreamKernel<Index1D, ArrayView<int>, int, int, int, double, double, double>(MandelbrotKernel);
+                kernel = _accelerator.LoadAutoGroupedStreamKernel<Index1D, ArrayView<int>, int, double, double, double>(MandelbrotKernel);
             }
-            
-            // Launch the kernel
-            kernel((Index1D)(width * height), buffer.View, width, height, maxIterations, centerReal, centerImaginary, zoom);
-            
-            // Wait for GPU to complete
+            kernel((Index1D)(width * height), buffer.View, maxIterations, centerReal, centerImaginary, zoom);
             _accelerator.Synchronize();
-            
-            // Get results
             var result = buffer.GetAsArray1D();
             return result;
         });
     }
 
-
-
     /// <summary>
     /// Ultra-optimized ILGPU kernel for computing Mandelbrot set iterations
     /// Advanced GPU optimizations: cardioid/bulb detection, loop unrolling, constant optimization
     /// </summary>
-    private static void MandelbrotKernel(Index1D index, ArrayView<int> output, int width, int height, int maxIterations, double centerReal, double centerImaginary, double zoom)
+    private static void MandelbrotKernel(Index1D index, ArrayView<int> output, int maxIterations, double centerReal, double centerImaginary, double zoom)
     {
+        int width = SharedConstants.DefaultCanvasWidth;
+        int height = SharedConstants.DefaultCanvasHeight;
         // Convert linear index to 2D coordinates
         int x = index % width;
         int y = index / width;
-        
         // Pre-calculate constants to avoid repeated computation
         const double VIEWPORT_WIDTH = SharedConstants.DefaultViewportWidth;
         const double VIEWPORT_HEIGHT = SharedConstants.DefaultViewportHeight;
         const double ESCAPE_RADIUS_SQ = 4.0; // 2^2 for escape condition
-        
         // Use reciprocal multiplication for better GPU performance  
         double invZoom = 1.0 / zoom;
         double viewWidth = VIEWPORT_WIDTH * invZoom;
         double viewHeight = VIEWPORT_HEIGHT * invZoom;
-        
         // Pre-calculate view bounds
         double minReal = centerReal - viewWidth * 0.5;
         double minImag = centerImaginary - viewHeight * 0.5;
-        
         // Direct coordinate calculation using optimized scaling
         double invWidth = viewWidth / width;
         double invHeight = viewHeight / height;
-        
         // Convert pixel coordinates to complex plane (optimized)
         double real = minReal + x * invWidth;
         double imag = minImag + y * invHeight;
